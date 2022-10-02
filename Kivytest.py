@@ -23,7 +23,7 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 (Username text
 ,Password text 
 )""")#inside are columns/categorys
-cursor.execute("INSERT INTO UsersAndPasswords VALUES ('kpop','fafa')")
+
 class Login(App):#Create different windows class
     def build(self):
         Window.clearcolor =(Grey)#sets background color for window to get value take each rgb value and divide by 255
