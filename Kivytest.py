@@ -43,8 +43,16 @@ class Login(App):#Create different windows class
             username=cursor.execute("SELECT Username From UsersAndPasswords")
 
             for row in Table:#goes through every column in UserAndPasswords
-                if row[0]== Username.text:
+                if row[0]== Username.text and row[1]== Password.text:
                     print("yaayayayayayayay")
+                
+                if row[0]== Username.text and row[1]!= Password.text:
+                    Password.text==""
+                    print("incorrect password")
+
+                if row[0]!= Username.text and row[1]== Password.text:
+                    Username.text==""
+                    print("incorrect username")
 
                
 
