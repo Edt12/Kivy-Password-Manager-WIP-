@@ -1,3 +1,4 @@
+
 import sqlite3
 from kivy.app import App
 from kivy.uix.button import Button
@@ -25,7 +26,10 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 )""")#inside are columns/categorys
 
 class Login(App):#Create different windows class
+   
     def build(self):
+
+ 
         Window.clearcolor =(Grey)#sets background color for window to get value take each rgb value and divide by 255
 
         LoginLayout =FloatLayout()#float layout allows you to place widgets anywhere
@@ -36,7 +40,9 @@ class Login(App):#Create different windows class
         Password=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.4})#creates Input box called username,on size_hint first value is length second is width
         LoginLayout.add_widget(Password)
 
-        EnterUsername=Button(size_hint=(0.1,0.05),pos_hint={'x':0.6,'y':0.5},text="Enter",background_color=green)
+        EnterUsernameandPassword=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.5},text="Enter",background_color=green)
+       
+   
         def Callback(self):
             cursor.execute("SELECT * From UsersAndPasswords")
             Table=cursor.fetchall()
@@ -55,20 +61,12 @@ class Login(App):#Create different windows class
                     print("incorrect username")
 
                
-
+ 
             
-            
 
-        EnterUsername.bind(on_press=Callback)
-        LoginLayout.add_widget(EnterUsername)
+        EnterUsernameandPassword.bind(on_press=Callback)
+        LoginLayout.add_widget(EnterUsernameandPassword)
 
-        EnterPassword=Button(size_hint=(0.1,0.05),pos_hint={'x':0.6,'y':0.4},text="Enter",background_color=green)
-        def Callback(self):#Define what happens when button is pressed for each button redefine Callback each time you are calling a class  
-            Password.text=""
-
-        EnterPassword.bind(on_press=Callback)#To make a button do something when pressed make a variable then bind the button to it
-        LoginLayout.add_widget(EnterPassword)
-        
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         LoginLayout.add_widget(LoginTitle)
 
@@ -79,4 +77,3 @@ cursor.execute("SELECT Username FROM UsersAndPasswords")#selects a table in data
 results=cursor.fetchall()#selects everything within that table
 print(results)
 conn.close()
-
