@@ -1,5 +1,6 @@
 
 import sqlite3
+from kivy.uix.screenmanager import Screen
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label#import widgets such as buttons and labels 
@@ -8,7 +9,6 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 from kivy.core.window import Window
-
 
 green = [0, 1, 0, 1] #RGBA values /255
 Grey=[0.8,0.8,0.8,1]
@@ -24,9 +24,33 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 (Username text
 ,Password text 
 )""")#inside are columns/categorys
+#Creating a Keyboard Class
+class KeyboardListener(Screen):
+        def __init__(self, **kwargs):
+            super(KeyboardListener, self).__init__(**kwargs)
+            self._keyboard = Window.request_keyboard(
+                self.k,self, 'tet')#requested a keyboard first function is what will be triggered when release is pressed 2nd is give keyboard attribute sef third is name of keyboard
+            if self._keyboard.widget:
+                # If it exists, this widget is a VKeyboard object which you can use
+                # to change the keyboard layout.
+                pass
+            self._keyboard.bind(on_key_down=self._on_keyboard_down)#Gives keydown variable
+  
+        def k(self):
+            print('My keyboard have been closed!')
+            self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+            self._keyboard = None
 
+        def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+            if keycode[1]=='escape':
+                keyboard.release() #calls first function in request command
+
+            # Return True to accept the key. Otherwise, it will be used by
+            # the system.
+            return True 
+            
 class Login(App):#Create different windows class
-   
+    
     def build(self):
  
         Window.clearcolor =(Grey)#sets background color for window to get value take each rgb value and divide by 255
@@ -41,6 +65,7 @@ class Login(App):#Create different windows class
 
         EnterUsernameandPassword=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.5},text="Enter",background_color=green)
         
+        LoginLayout.add_widget(KeyboardListener())
    
         def Callback(self):
             cursor.execute("SELECT * From UsersAndPasswords")
@@ -49,7 +74,7 @@ class Login(App):#Create different windows class
 
             for row in Table:#goes through every column in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
-                    print("yaayayayayayayay")
+                    print("Both Correct")
                 
                 if row[0]== Username.text and row[1]!= Password.text:
                     Password.text==""
@@ -69,8 +94,10 @@ class Login(App):#Create different windows class
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         LoginLayout.add_widget(LoginTitle)
 
-        return LoginLayout
-         
+        return LoginLayout 
+
+        
+    
 Login().run()
 cursor.execute("SELECT Username FROM UsersAndPasswords")#selects a table in database
 results=cursor.fetchall()#selects everything within that table
