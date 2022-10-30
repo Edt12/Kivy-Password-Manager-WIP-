@@ -1,8 +1,8 @@
 
-from cProfile import label
-from cgitb import text
+from distutils.log import Log
 import sqlite3
-from kivy.uix.screenmanager import Screen
+from unicodedata import name
+from kivy.uix.screenmanager import ScreenManager, Screen#Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label#import widgets such as buttons and labels 
@@ -27,8 +27,15 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 ,Password text 
 )""")#inside are columns/categorys
 
+class Password(Screen):
+    def build(self):
+        Window.clearcolor=(Grey)
+        test=Label(text="test",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
+        Password.add_widget(test)
 
-class Login(App):#Create different windows class
+
+screen_manager=ScreenManager()#switches user between screens and controls them
+class Login(Screen):#Create different windows class
     
     def build(self):
  
@@ -53,8 +60,7 @@ class Login(App):#Create different windows class
             for row in Table:#goes through every column in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
                     print("Both Correct")
-                    Login().stop()
-                    PasswordScreen().run()     
+             
                 if row[0]== Username.text and row[1]!= Password.text:
                     Password.text==""
                     print("incorrect password")
@@ -62,8 +68,7 @@ class Login(App):#Create different windows class
                 if row[0]!= Username.text and row[1]== Password.text:
                     Username.text==""
                     print("incorrect username")
-
-               
+                    
  
             
 
@@ -74,19 +79,15 @@ class Login(App):#Create different windows class
         LoginLayout.add_widget(LoginTitle)
 
         return LoginLayout 
-
-class PasswordScreen(App):
+#FIND PYTHON COMMAND FOR SWITCHING SCREENS IN SCREEN MANAGER
+class PasswordManagerApp(App):
     def build(self):
+        screen_manager.add_widget(Login(name="Login_Screen"))
+        screen_manager.add_widget(Password(name="Password_Screen"))
+        screen_manager.switch_to(Login(name="Login_Screen"))
+        return screen_manager
     
-        Window.clearcolor =(Grey)#sets background color for window to get value take each rgb value and divide by 255
-        PasswordLayout=FloatLayout
-        test=Label(text="Successful")
-        test=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
-    
-        PasswordLayout.add_widget(test)
-        return PasswordLayout
-    
-Login().run()
+PasswordManagerApp().run()
 cursor.execute("SELECT Username FROM UsersAndPasswords")#selects a table in database
 results=cursor.fetchall()#selects everything within that table
 print(results)
