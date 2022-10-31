@@ -1,8 +1,5 @@
-
-from distutils.log import Log
 import sqlite3
-from unicodedata import name
-from kivy.uix.screenmanager import ScreenManager, Screen#Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
+from kivy.uix.screenmanager import ScreenManager, Screen ,SlideTransition#Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label#import widgets such as buttons and labels 
@@ -18,6 +15,7 @@ Black=[0,0,0,1]
 #designates kv design file
 Builder.load_file('App design file.kv')
 
+
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
@@ -27,27 +25,24 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 ,Password text 
 )""")#inside are columns/categorys
 
-class Password(Screen):
-    def build(self):
-        Window.clearcolor=(Grey)
-        test=Label(text="test",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
-        Password.add_widget(test)
 
 
-screen_manager=ScreenManager()#switches user between screens and controls them
+
+
 class Login(Screen):#Create different windows class
     
-    def build(self):
- 
+    def __init__(self,**kwargs):#Instead of using build to intialise use init 
+        Screen.__init__(self,**kwargs)
+        
         Window.clearcolor =(Grey)#sets background color for window to get value take each rgb value and divide by 255
 
-        LoginLayout =FloatLayout()#float layout allows you to place widgets anywhere
+        self.layout=FloatLayout()#float layout allows you to place widgets anywhere
 
         Username=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.5})#creates Input box called username,on size_hint first value is length second is width
-        LoginLayout.add_widget(Username)
+        self.add_widget(Username)
 
         Password=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.4})#creates Input box called username,on size_hint first value is length second is width
-        LoginLayout.add_widget(Password)
+        self.add_widget(Password)
 
         EnterUsernameandPassword=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.5},text="Enter",background_color=green)
 
@@ -69,25 +64,27 @@ class Login(Screen):#Create different windows class
                     Username.text==""
                     print("incorrect username")
                     
- 
             
 
         EnterUsernameandPassword.bind(on_press=Callback)
-        LoginLayout.add_widget(EnterUsernameandPassword)
+        self.add_widget(EnterUsernameandPassword)
 
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
-        LoginLayout.add_widget(LoginTitle)
+        self.add_widget(LoginTitle)
 
-        return LoginLayout 
-#FIND PYTHON COMMAND FOR SWITCHING SCREENS IN SCREEN MANAGER
-class PasswordManagerApp(App):
+  
+
+
+class PasswordManager(App):
     def build(self):
-        screen_manager.add_widget(Login(name="Login_Screen"))
-        screen_manager.add_widget(Password(name="Password_Screen"))
-        screen_manager.switch_to(Login(name="Login_Screen"))
-        return screen_manager
+        self.screen=ScreenManager()
+        self.screen.add_widget(Login(name="Login"))
+        print(self.screen.current_screen)
+        return self.screen
     
-PasswordManagerApp().run()
+    
+
+PasswordManager().run()
 cursor.execute("SELECT Username FROM UsersAndPasswords")#selects a table in database
 results=cursor.fetchall()#selects everything within that table
 print(results)
