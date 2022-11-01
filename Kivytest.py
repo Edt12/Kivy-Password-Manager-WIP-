@@ -1,5 +1,5 @@
 import sqlite3
-from kivy.uix.screenmanager import ScreenManager, Screen ,SlideTransition#Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
+from kivy.uix.screenmanager import ScreenManager, Screen,NoTransition #Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label#import widgets such as buttons and labels 
@@ -25,6 +25,22 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 (Username text
 ,Password text 
 )""")#inside are columns/categorys
+
+class PasswordMenu(Screen):
+      def __init__(self,**kwargs):#Instead of using build to intialise use init 
+        Screen.__init__(self,**kwargs)
+        self.layout=FloatLayout
+        Victory=Label(text="VICTORY")
+        self.add_widget(Victory)
+
+
+
+
+
+
+#       
+sm=ScreenManager(transition=NoTransition())
+sm.add_widget(PasswordMenu(name="PasswordMenu"))
 
 
 class Login(Screen):#Create different windows class
@@ -53,7 +69,8 @@ class Login(Screen):#Create different windows class
             for row in Table:#goes through every column in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
                     print("Both Correct")
-                    
+                    sm.current="PasswordMenu"
+
                 if row[0]== Username.text and row[1]!= Password.text:
                     Password.text==""
                     print("incorrect password")
@@ -70,22 +87,13 @@ class Login(Screen):#Create different windows class
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         self.add_widget(LoginTitle)
 
-class PasswordMenu(Screen):
-      def __init__(self,**kwargs):#Instead of using build to intialise use init 
-        Screen.__init__(self,**kwargs)
-        self.layout=FloatLayout
-        Victory=Label(text="VICTORY")
-        self.add_widget(Victory)
+
 
 
 class PasswordManager(App):
     def build(self):
-        sm=ScreenManager()
         sm.add_widget(Login(name="Login"))
-        sm.add_widget(PasswordMenu(name="PasswordMenu"))
-    
-
-
+        sm.current="Login"
         return sm
     
 PasswordManager().run()
