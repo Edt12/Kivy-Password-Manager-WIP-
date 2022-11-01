@@ -16,6 +16,7 @@ Black=[0,0,0,1]
 Builder.load_file('App design file.kv')
 
 
+
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
@@ -26,14 +27,11 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 )""")#inside are columns/categorys
 
 
-
-
-
 class Login(Screen):#Create different windows class
     
     def __init__(self,**kwargs):#Instead of using build to intialise use init 
         Screen.__init__(self,**kwargs)
-        
+    
         Window.clearcolor =(Grey)#sets background color for window to get value take each rgb value and divide by 255
 
         self.layout=FloatLayout()#float layout allows you to place widgets anywhere
@@ -55,7 +53,7 @@ class Login(Screen):#Create different windows class
             for row in Table:#goes through every column in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
                     print("Both Correct")
-             
+                    
                 if row[0]== Username.text and row[1]!= Password.text:
                     Password.text==""
                     print("incorrect password")
@@ -72,20 +70,22 @@ class Login(Screen):#Create different windows class
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         self.add_widget(LoginTitle)
 
-  
+class PasswordMenu(Screen):
+      def __init__(self,**kwargs):#Instead of using build to intialise use init 
+        Screen.__init__(self,**kwargs)
+        self.layout=FloatLayout
+        Victory=Label(text="VICTORY")
+        self.add_widget(Victory)
 
 
 class PasswordManager(App):
     def build(self):
-        self.screen=ScreenManager()
-        self.screen.add_widget(Login(name="Login"))
-        print(self.screen.current_screen)
-        return self.screen
-    
+        sm=ScreenManager()
+        sm.add_widget(Login(name="Login"))
+        sm.add_widget(PasswordMenu(name="PasswordMenu"))
     
 
+
+        return sm
+    
 PasswordManager().run()
-cursor.execute("SELECT Username FROM UsersAndPasswords")#selects a table in database
-results=cursor.fetchall()#selects everything within that table
-print(results)
-conn.close()
