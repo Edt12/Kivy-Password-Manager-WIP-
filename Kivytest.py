@@ -6,6 +6,7 @@ from kivy.uix.label import Label#import widgets such as buttons and labels
 from kivy.uix.widget import Widget
 from kivy.uix.textinput import TextInput
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.stacklayout import StackLayout
 from kivy.lang import Builder
 from kivy.core.window import Window
 
@@ -25,27 +26,54 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 (Username text
 ,Password text 
 )""")#inside are columns/categorys
+sm=ScreenManager(transition=NoTransition())
 
+class PasswordCreation(Screen):
+    def __init__(self, **kwargs):
+        Screen.__init__(self,**kwargs)
+        self.layout=FloatLayout
+        #input boxes
+        NewUsername=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
+        self.add_widget(NewUsername)
+        NewPassword=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.4})
+        self.add_widget(NewPassword)
+        #labels
+        PasswordCreationTitle=Label(text="Password Creation Screen",size_hint=(0.1,0.05),pos_hint={'x':0.35,'y':0.9},color=Black)
+        self.add_widget(PasswordCreationTitle)
+        NewUsernameTitle=Label(text="Please Enter Your New Username",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.7},color=Black)
+        self.add_widget(NewUsernameTitle)
+        NewPasswordTitle=Label(text="Please Enter Your New Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.5},color=Black)
+        self.add_widget(NewPasswordTitle)
+        #buttons
+        AddUsernameAndPassword=Button(size_hint=(0.25,0.1),pos_hint={'x':0.7,'y':0.6},text="Add username and password",background_color=green,color=Black)
+        self.add_widget(AddUsernameAndPassword)
+
+
+sm.add_widget(PasswordCreation(name="PasswordCreation"))
 class PasswordMenu(Screen):
       def __init__(self,**kwargs):#Instead of using build to intialise use init 
         Screen.__init__(self,**kwargs)
-        self.layout=FloatLayout
-        Victory=Label(text="VICTORY")
-        self.add_widget(Victory)
+        self.layout=StackLayout
+        Title=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text="Password Screen",color=Black)
+        self.add_widget(Title)
+        def Callback(self):
+           sm.current="PasswordCreation"
+        CreatePassword=Button(size_hint=(0.15,0.1),pos_hint={'x':0.0,'y':0.9},text="Create Password",background_color=green)
+        CreatePassword.bind(on_press=Callback)
+        self.add_widget(CreatePassword)
 
 
 
 
 
+#Made ScreenManger(controls all different screens) here so i can add in the Password Menu before Login window so i can switch to it on a button press       
 
-#       
-sm=ScreenManager(transition=NoTransition())
 sm.add_widget(PasswordMenu(name="PasswordMenu"))
 
 
 class Login(Screen):#Create different windows class
     
-    def __init__(self,**kwargs):#Instead of using build to intialise use init 
+    def __init__(self,**kwargs):#Instead of using build to intialise use init as build does not work with screen class
         Screen.__init__(self,**kwargs)
     
         Window.clearcolor =(Grey)#sets background color for window to get value take each rgb value and divide by 255
