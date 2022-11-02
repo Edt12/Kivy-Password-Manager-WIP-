@@ -38,7 +38,7 @@ class PasswordCreation(Screen):
         NewPassword=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.4})
         self.add_widget(NewPassword)
         #labels
-        PasswordCreationTitle=Label(text="Password Creation Screen",size_hint=(0.1,0.05),pos_hint={'x':0.35,'y':0.9},color=Black)
+        PasswordCreationTitle=Label(text="Password Creation Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
         self.add_widget(PasswordCreationTitle)
         NewUsernameTitle=Label(text="Please Enter Your New Username",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.7},color=Black)
         self.add_widget(NewUsernameTitle)
@@ -57,7 +57,7 @@ class PasswordMenu(Screen):
         Title=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text="Password Screen",color=Black)
         self.add_widget(Title)
         def Callback(self):
-           sm.current="PasswordCreation"
+           sm.current="PasswordCreation" #Changes current screen to Password Creation Screen
         CreatePassword=Button(size_hint=(0.15,0.1),pos_hint={'x':0.0,'y':0.9},text="Create Password",background_color=green)
         CreatePassword.bind(on_press=Callback)
         self.add_widget(CreatePassword)
