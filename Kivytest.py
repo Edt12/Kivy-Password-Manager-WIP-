@@ -31,6 +31,8 @@ sm=ScreenManager(transition=NoTransition())
 class PasswordCreation(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self,**kwargs)
+        global newpassword
+        newpassword=False
         self.layout=FloatLayout
         #input boxes
         NewUsername=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
@@ -45,20 +47,36 @@ class PasswordCreation(Screen):
         NewPasswordTitle=Label(text="Please Enter Your New Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.5},color=Black)
         self.add_widget(NewPasswordTitle)
         #buttons
+        def Callback(self):
+            sm.current="PasswordMenu"
+            global newpassword
+            newpassword=True
+
         AddUsernameAndPassword=Button(size_hint=(0.25,0.1),pos_hint={'x':0.7,'y':0.6},text="Add username and password",background_color=green,color=Black)
+        AddUsernameAndPassword.bind(on_press=Callback)
         self.add_widget(AddUsernameAndPassword)
 
+        def Callback(self):
+            sm.current="PasswordMenu"#backbutton changes sm back to PasswordMenu
+
+        Backbutton=Button(size_hint=(0.25,0.1),pos_hint={'x':0.0,'y':0.9},text="back",background_color=green,color=Black)
+        Backbutton.bind(on_press=Callback)
+        self.add_widget(Backbutton)
 
 sm.add_widget(PasswordCreation(name="PasswordCreation"))
 class PasswordMenu(Screen):
       def __init__(self,**kwargs):#Instead of using build to intialise use init 
         Screen.__init__(self,**kwargs)
+        global newpassword
+        if newpassword==True:
+            print("STEVE")
+
         self.layout=StackLayout
         Title=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text="Password Screen",color=Black)
         self.add_widget(Title)
         def Callback(self):
            sm.current="PasswordCreation" #Changes current screen to Password Creation Screen
-        CreatePassword=Button(size_hint=(0.15,0.1),pos_hint={'x':0.0,'y':0.9},text="Create Password",background_color=green)
+        CreatePassword=Button(size_hint=(0.15,0.1),pos_hint={'x':0.0,'y':0.9},text="Create Password",background_color=green,color=Black)
         CreatePassword.bind(on_press=Callback)
         self.add_widget(CreatePassword)
 
@@ -123,5 +141,6 @@ class PasswordManager(App):
         sm.add_widget(Login(name="Login"))
         sm.current="Login"
         return sm
-    
+print(newpassword)   
 PasswordManager().run()
+print(newpassword)
