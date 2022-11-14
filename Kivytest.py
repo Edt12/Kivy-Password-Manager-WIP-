@@ -16,7 +16,9 @@ Black=[0,0,0,1]
 #designates kv design file
 Builder.load_file('App design file.kv')
 
-
+PasswordPos_hintX=0.0
+PasswordPos_hintY=0.0
+PasswordNumber=0
 
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
@@ -26,6 +28,16 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 (Username text
 ,Password text 
 )""")#inside are columns/categorys
+cursor.execute("SELECT * From UsersAndPasswords")
+Table=cursor.fetchall()
+username=cursor.execute("SELECT Username From UsersAndPasswords")
+for row in Table:
+    cursor.execute("""create table IF NOT EXISTS UsersAndPasswords 
+(
+PasswordTitle text
+,Username text
+,Password text 
+)""")#inside are columns/categorys)
 sm=ScreenManager(transition=NoTransition())
 
 class PasswordCreation(Screen):
@@ -46,11 +58,27 @@ class PasswordCreation(Screen):
         self.add_widget(NewPasswordTitle)
         #buttons
         def Callback(self):
+            global PasswordPos_hintX
+            global PasswordPos_hintY
+            global PasswordNumber
+        
             PasswordMenuScreen=sm.get_screen("PasswordMenu")
             sm.current="PasswordMenu"
-            test=Button(size_hint=(0.25,0.1),text="Add username and password",background_color=green,color=Black)
-            PasswordMenuScreen.add_widget(test)
+            IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(NewUsername),background_color=green,color=Black)
+            PasswordPos_hintX+=0.2
+            PasswordNumber+=1
+            PasswordNumber_DividedBy5=PasswordNumber/5
+            if PasswordNumber_DividedBy5.is_integer():#is integer checks whether something is integer
+                PasswordPos_hintX=0
+                PasswordPos_hintY+=0.1
 
+            if PasswordPos_hintY>1:#ADD scroll bar later
+                print("steve")
+           
+         
+
+            PasswordMenuScreen.add_widget(IndividualPassword)
+    
 
         AddUsernameAndPassword=Button(size_hint=(0.25,0.1),pos_hint={'x':0.7,'y':0.6},text="Add username and password",background_color=green,color=Black)
         AddUsernameAndPassword.bind(on_press=Callback)
