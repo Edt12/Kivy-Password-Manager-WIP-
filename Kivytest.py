@@ -39,16 +39,21 @@ class PasswordCreation(Screen):
         #input boxes
         NewPasswordTitle=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
         self.add_widget(NewPasswordTitle)
-        NewUsername=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
+        NewUsername=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.4})
         self.add_widget(NewUsername)
-        NewPassword=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.4})
+        NewPassword=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.2})
         self.add_widget(NewPassword)
         #labels
         PasswordCreationTitle=Label(text="Password Creation Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
         self.add_widget(PasswordCreationTitle)
-        NewUsernameTitle=Label(text="Please Enter Your New Username",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.7},color=Black)
+        
+        NewPasswordTitleLabel=Label(text="Please enter your Password Title",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.7},color=Black)
+        self.add_widget(NewPasswordTitleLabel)
+
+        NewUsernameTitle=Label(text="Please Enter Your New Username",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.5},color=Black)
         self.add_widget(NewUsernameTitle)
-        NewPasswordTitle=Label(text="Please Enter Your New Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.5},color=Black)
+        
+        NewPasswordTitle=Label(text="Please Enter Your New Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.3},color=Black)
         self.add_widget(NewPasswordTitle)
         #buttons
         def Callback(self):
@@ -58,8 +63,12 @@ class PasswordCreation(Screen):
             Password=NewPassword.text
             Username=NewUsername.text
             PasswordTitle=NewPasswordTitle.text
+            UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
+            User=UserTracker.read()
+            UserTracker.close()
             
-            #cursor.execute("INSERT INTO UserPasswords values ((?),(?),(?),(?))",PasswordTitle,Username,Password)
+            cursor.executemany("INSERT INTO UserPasswords VALUES(?,?,?,?)",(PasswordTitle,Username,Password,User))
+            conn.commit()
             PasswordMenuScreen=sm.get_screen("PasswordMenu")
             sm.current="PasswordMenu"
             IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(NewUsername),background_color=green,color=Black)
@@ -132,7 +141,9 @@ class Login(Screen):#Create different windows class
             Table=cursor.fetchall()
             username=cursor.execute("SELECT Username From UsersAndPasswords")
             User=Username.text
-            
+            UserTracker=open("UserLoggedin","w")
+            UserTracker.write(User)
+            UserTracker.close()
 
             for row in Table:#goes through every column in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
@@ -165,3 +176,6 @@ class PasswordManager(App):
         return sm
 
 PasswordManager().run()
+UserTracker=open("UserLoggedin","w")
+UserTracker.write("")
+UserTracker.close()
