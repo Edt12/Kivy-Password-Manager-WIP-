@@ -28,16 +28,8 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 (Username text
 ,Password text 
 )""")#inside are columns/categorys
-cursor.execute("SELECT * From UsersAndPasswords")
-Table=cursor.fetchall()
-username=cursor.execute("SELECT Username From UsersAndPasswords")
-for row in Table:
-    cursor.execute("""create table IF NOT EXISTS UsersAndPasswords 
-(
-PasswordTitle text
-,Username text
-,Password text 
-)""")#inside are columns/categorys)
+cursor.execute("create table IF NOT EXISTS UserPasswords(PasswordTitle text,Username text,Password text,User text )")#inside are columns/categorys)
+
 sm=ScreenManager(transition=NoTransition())
 
 class PasswordCreation(Screen):
@@ -45,6 +37,8 @@ class PasswordCreation(Screen):
         Screen.__init__(self,**kwargs)
         self.layout=FloatLayout
         #input boxes
+        NewPasswordTitle=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
+        self.add_widget(NewPasswordTitle)
         NewUsername=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
         self.add_widget(NewUsername)
         NewPassword=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.4})
@@ -61,7 +55,11 @@ class PasswordCreation(Screen):
             global PasswordPos_hintX
             global PasswordPos_hintY
             global PasswordNumber
-        
+            Password=NewPassword.text
+            Username=NewUsername.text
+            PasswordTitle=NewPasswordTitle.text
+            
+            #cursor.execute("INSERT INTO UserPasswords values ((?),(?),(?),(?))",PasswordTitle,Username,Password)
             PasswordMenuScreen=sm.get_screen("PasswordMenu")
             sm.current="PasswordMenu"
             IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(NewUsername),background_color=green,color=Black)
@@ -129,10 +127,12 @@ class Login(Screen):#Create different windows class
         EnterUsernameandPassword=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.5},text="Enter",background_color=green)
 
    
-        def Callback(self):
+        def LoginClick(self):
             cursor.execute("SELECT * From UsersAndPasswords")
             Table=cursor.fetchall()
             username=cursor.execute("SELECT Username From UsersAndPasswords")
+            User=Username.text
+            
 
             for row in Table:#goes through every column in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
@@ -149,7 +149,7 @@ class Login(Screen):#Create different windows class
                     
             
 
-        EnterUsernameandPassword.bind(on_press=Callback)
+        EnterUsernameandPassword.bind(on_press=LoginClick)
         self.add_widget(EnterUsernameandPassword)
 
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
