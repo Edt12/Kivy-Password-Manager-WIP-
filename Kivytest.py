@@ -99,6 +99,13 @@ sm.add_widget(PasswordCreation(name="PasswordCreation"))
 class PasswordMenu(Screen):
       def __init__(self,**kwargs):#Instead of using build to intialise use init 
         Screen.__init__(self,**kwargs)
+        UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
+        User=UserTracker.read()
+        UserTracker.close()
+        cursor.execute("SELECT * from UserPasswords WHERE User = (?)",(User,))
+        Table=cursor.fetchall()
+        for row in Table:
+            print("steve")        
         self.layout=StackLayout
         Title=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text="Password Screen",color=Black)
         self.add_widget(Title)
@@ -140,16 +147,16 @@ class Login(Screen):#Create different windows class
             cursor.execute("SELECT * From UsersAndPasswords")
             Table=cursor.fetchall()
             username=cursor.execute("SELECT Username From UsersAndPasswords")
-            User=Username.text
-            UserTracker=open("UserLoggedin","w")
-            UserTracker.write(User)
-            UserTracker.close()
+    
 
             for row in Table:#goes through every column in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
                     print("Both Correct")
+                    User=Username.text
                     sm.current="PasswordMenu"
-
+                    UserTracker=open("UserLoggedin","w")
+                    UserTracker.write(User)
+                              
                 if row[0]== Username.text and row[1]!= Password.text:
                     Password.text==""
                     print("incorrect password")
@@ -157,7 +164,7 @@ class Login(Screen):#Create different windows class
                 if row[0]!= Username.text and row[1]== Password.text:
                     Username.text==""
                     print("incorrect username")
-                    
+                
             
 
         EnterUsernameandPassword.bind(on_press=LoginClick)
