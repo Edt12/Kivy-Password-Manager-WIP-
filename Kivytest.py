@@ -37,8 +37,8 @@ class PasswordCreation(Screen):
         Screen.__init__(self,**kwargs)
         self.layout=FloatLayout
         #input boxes
-        NewPasswordTitle=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
-        self.add_widget(NewPasswordTitle)
+        NewPasswordTitleInput=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
+        self.add_widget(NewPasswordTitleInput)
         NewUsername=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.4})
         self.add_widget(NewUsername)
         NewPassword=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.2})
@@ -62,12 +62,12 @@ class PasswordCreation(Screen):
             global PasswordNumber
             Password=NewPassword.text
             Username=NewUsername.text
-            PasswordTitle=NewPasswordTitle.text
+            PasswordTitle=NewPasswordTitleInput.text
             UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
             User=UserTracker.read()
             UserTracker.close()
             
-            cursor.executemany("INSERT INTO UserPasswords VALUES(?,?,?,?)",(PasswordTitle,Username,Password,User))
+            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(PasswordTitle,Username,Password,User))
             conn.commit()
             PasswordMenuScreen=sm.get_screen("PasswordMenu")
             sm.current="PasswordMenu"
