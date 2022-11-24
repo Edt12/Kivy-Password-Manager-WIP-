@@ -98,14 +98,7 @@ class PasswordCreation(Screen):
 sm.add_widget(PasswordCreation(name="PasswordCreation"))
 class PasswordMenu(Screen):
       def __init__(self,**kwargs):#Instead of using build to intialise use init 
-        Screen.__init__(self,**kwargs)
-        UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
-        User=UserTracker.read()
-        UserTracker.close()
-        cursor.execute("SELECT * from UserPasswords WHERE User = (?)",(User,))
-        Table=cursor.fetchall()
-        for row in Table:
-            print("steve")        
+        Screen.__init__(self,**kwargs) 
         self.layout=StackLayout
         Title=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text="Password Screen",color=Black)
         self.add_widget(Title)
@@ -114,7 +107,6 @@ class PasswordMenu(Screen):
         CreatePassword=Button(size_hint=(0.15,0.1),pos_hint={'x':0.0,'y':0.9},text="Create Password",background_color=green,color=Black)
         CreatePassword.bind(on_press=Callback)
         self.add_widget(CreatePassword)
-        
 
 
 
@@ -147,16 +139,26 @@ class Login(Screen):#Create different windows class
             cursor.execute("SELECT * From UsersAndPasswords")
             Table=cursor.fetchall()
             username=cursor.execute("SELECT Username From UsersAndPasswords")
-    
+            
 
-            for row in Table:#goes through every column in UserAndPasswords
+            for row in Table:#goes through every row in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
                     print("Both Correct")
                     User=Username.text
                     sm.current="PasswordMenu"
                     UserTracker=open("UserLoggedin","w")
                     UserTracker.write(User)
-                              
+    
+                    UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
+                    User=UserTracker.read()
+                    print(User)
+                    cursor.execute("SELECT * from UserPasswords WHERE User = (?)",(User,))
+                    Table=cursor.fetchall()
+                    print(Table)
+                    
+                    for row in Table:
+                        IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(),background_color=green,color=Black)
+     
                 if row[0]== Username.text and row[1]!= Password.text:
                     Password.text==""
                     print("incorrect password")
@@ -183,6 +185,8 @@ class PasswordManager(App):
         return sm
 
 PasswordManager().run()
+
 UserTracker=open("UserLoggedin","w")
 UserTracker.write("")
 UserTracker.close()
+
