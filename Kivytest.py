@@ -31,6 +31,11 @@ cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
 cursor.execute("create table IF NOT EXISTS UserPasswords(PasswordTitle text,Username text,Password text,User text )")#inside are columns/categorys)
 
 sm=ScreenManager(transition=NoTransition())
+class PasswordView(Screen):
+    def __init__(self, **kwargs):
+        Screen.__init__(self,**kwargs)
+        self.layout=FloatLayout
+        
 
 class PasswordCreation(Screen):
     def __init__(self, **kwargs):
@@ -143,6 +148,10 @@ class Login(Screen):#Create different windows class
 
             for row in Table:#goes through every row in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
+
+                    global PasswordPos_hintX
+                    global PasswordPos_hintY
+                    global PasswordNumber
                     print("Both Correct")
                     User=Username.text
                     sm.current="PasswordMenu"
@@ -157,8 +166,20 @@ class Login(Screen):#Create different windows class
                     print(Table)
                     
                     for row in Table:
-                        IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(),background_color=green,color=Black)
-     
+                        PasswordMenuScreen=sm.get_screen("PasswordMenu")
+                        sm.current="PasswordMenu"
+                        IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(row[0]),background_color=green,color=Black)
+                        PasswordMenuScreen.add_widget(IndividualPassword)
+                        PasswordPos_hintX+=0.2
+                        PasswordNumber+=1
+                        PasswordNumber_DividedBy5=PasswordNumber/5
+                        if PasswordNumber_DividedBy5.is_integer():#is integer checks whether something is integer
+                            PasswordPos_hintX=0
+                            PasswordPos_hintY+=0.1
+
+            if PasswordPos_hintY>1:#ADD scroll bar later
+                print("steve")
+           
                 if row[0]== Username.text and row[1]!= Password.text:
                     Password.text==""
                     print("incorrect password")
