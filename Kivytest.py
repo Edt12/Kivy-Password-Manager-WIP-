@@ -168,31 +168,26 @@ class Login(Screen):#Create different windows class
                     PasswordTitleStorage=open("PasswordTitleStorage",'a')
                     for row in Table:
                         PasswordTitle=row[0]
-                        PasswordTitleStorage.write(PasswordTitle+"\n")
                         PasswordMenuScreen=sm.get_screen("PasswordMenu")
                         sm.current="PasswordMenu"
                         def Callback(self):
-                            #work out which where button is in title file
-                            HorizontalPlace=PasswordPos_hintX/0.2
-                            VerticalHeight=PasswordPos_hintY/0.1
-                            VerticalPosition=VerticalHeight*5
-                            PlaceInStorage=HorizontalPlace+VerticalPosition
-                            
-                            print(IndividualPassword.pos)
+                            #work out which where button is in title 
+                            PasswordName=self.text
+                            cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
+                            print(cursor.fetchall())
 
-                            PasswordTitleStorage=open("PasswordTitleStorage",'r')
-                            title=PasswordTitleStorage.readlines(int(PlaceInStorage))
-                            print(title)
 
                         IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black)
                         IndividualPassword.bind(on_press=Callback)
                         PasswordMenuScreen.add_widget(IndividualPassword)
                         PasswordPos_hintX+=0.2
                         PasswordNumber+=1
+
                         PasswordNumber_DividedBy5=PasswordNumber/5
                         if PasswordNumber_DividedBy5.is_integer():#is integer checks whether something is integer
                             PasswordPos_hintX=0
                             PasswordPos_hintY+=0.1
+                            
                     PasswordTitleStorage.close()
             if PasswordPos_hintY>1:#ADD scroll bar later
                 print("steve")
@@ -228,6 +223,4 @@ UserTracker=open("UserLoggedin","w")
 UserTracker.write("")
 UserTracker.close()
 
-PasswordTitleStorage=open("PasswordTitleStorage",'w')
-PasswordTitleStorage.write("")
-PasswordTitleStorage.close()
+
