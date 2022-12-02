@@ -36,8 +36,9 @@ class PasswordView(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self,**kwargs)
         self.layout=FloatLayout
-        PasswordTitle_View=Label(text="test")
-        self.add_widget(PasswordTitle_View)
+
+
+sm.add_widget(PasswordView(name="PasswordView"))
 class PasswordCreation(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self,**kwargs)
@@ -75,9 +76,9 @@ class PasswordCreation(Screen):
             
             cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(PasswordTitle,Username,Password,User))
             conn.commit()
-            PasswordMenuScreen=sm.get_screen("PasswordMenu")
-            sm.current="PasswordMenu"
-            IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(NewUsername),background_color=green,color=Black)
+            PasswordMenuScreen=sm.get_screen("PasswordView")
+            sm.current="PasswordView"
+            IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black)
             PasswordPos_hintX+=0.2
             PasswordNumber+=1
             PasswordNumber_DividedBy5=PasswordNumber/5
@@ -172,10 +173,19 @@ class Login(Screen):#Create different windows class
                         sm.current="PasswordMenu"
                         def Callback(self):
                             #work out which where button is in title 
+                            PassowordViewScreen=sm.get_screen("PasswordView")
+                            sm.current="PasswordView"
                             PasswordName=self.text
                             cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
-                            print(cursor.fetchall())
+                            DisplayPassword=cursor.fetchall()
+                            ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text=row[0],color=Black)
+                            PassowordViewScreen.add_widget(ViewPasswordTitle)
 
+                            ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text=row[1],color=Black)
+                            PassowordViewScreen.add_widget(ViewPasswordName)
+
+                            ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text=row[2],color=Black)
+                            PassowordViewScreen.add_widget(ViewPassword)
 
                         IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black)
                         IndividualPassword.bind(on_press=Callback)
