@@ -4,6 +4,7 @@ WARNING:this is a personal project it is almost certainly not secure this is a p
 WORK IN PROGRESS
 
 This is a password manager I made to develop my Kivy Skills ahead of my end of year project in computer science.This password manager has buttons which you can press to access your passwords,it has a screen which you can use to add new passwords and passwords are stored in SQlite databases which means that they are pesistant and even if you shut the up and re open it your passwords will still be there.Furthermore it supports multiple users and each user is only able to access their passwords and no one elses.
+
 Main Features
 
 Can add new passwords
