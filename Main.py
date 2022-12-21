@@ -170,11 +170,9 @@ class PasswordCreation(Screen):
             PasswordNumberTracker.append("1")
             PasswordNumber=len(PasswordNumberTracker)
             print(len(PasswordNumberTracker))
-            PasswordNumber_DividedBy5=PasswordNumber/5
-            if PasswordNumber_DividedBy5.is_integer():#is integer checks whether something is integer
-                PasswordPos_hintX=0
-                PasswordPos_hintY+=0.1
-            
+            PasswordNumberDividedBy5=PasswordNumber/5
+            XandYSplit=str(PasswordNumberDividedBy5).split(".")
+            #PasswordPos_hintY=XandYSplit[0]*0.2
             IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
             PasswordMenuScreen=sm.get_screen("PasswordMenu")
             PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
@@ -284,5 +282,4 @@ def main():
     UserTracker=open("UserLoggedin","w")
     UserTracker.write("")   
     UserTracker.close()
-
 main()
