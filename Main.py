@@ -10,12 +10,13 @@ from kivy.uix.stacklayout import StackLayout
 from kivy.lang import Builder
 from kivy.core.window import Window
 
+
 green = [0, 1, 0, 1] #RGBA values /255
 Grey=[0.8,0.8,0.8,1]
 Black=[0,0,0,1]
 
 #Creating Sqlite Database
-conn=sqlite3.connect("DunderMifflinDatabase.db")#connects to database 
+conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
 
 
@@ -23,7 +24,7 @@ sm=ScreenManager(transition=NoTransition())
 
 PasswordNumberTracker=[]
 class Login(Screen):#Create different windows class
-   
+    
     def __init__(self,**kwargs):#Instead of using build to intialise use init as build does not work with screen class
         Screen.__init__(self,**kwargs)
     
@@ -40,19 +41,25 @@ class Login(Screen):#Create different windows class
         EnterUsernameandPassword=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.5},text="Enter",background_color=green)
 
    
-        def LoginClick(self):
+        def GeneratePasswords(self):
             cursor.execute("SELECT * From UsersAndPasswords")
             Table=cursor.fetchall()
             username=cursor.execute("SELECT Username From UsersAndPasswords")
             
-            ProductPos_hintX=0.0
-            ProductPos_hintY=0.0
-            ProductNumber=0
-          
-            for row in Table:#goes through every column in UserAndPasswords
+
+            for row in Table:#goes through every row in UserAndPasswords
                 if row[0]== Username.text and row[1]== Password.text:
+
                     print("Both Correct")
-                    cursor.execute("SELECT * from Products")
+                    User=Username.text
+                    sm.current="PasswordMenu"
+                    UserTracker=open("UserLoggedin","w")
+                    UserTracker.write(User)
+    
+                    UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
+                    User=UserTracker.read()
+                    print(User)
+                    cursor.execute("SELECT * from UserPasswords WHERE User = (?)",(User,))
                     Table=cursor.fetchall()
                     print(Table)
                     PasswordPos_hintX=0.0
@@ -105,28 +112,14 @@ class Login(Screen):#Create different windows class
                 if row[0]!= Username.text and row[1]== Password.text:
                     Username.text==""
                     print("incorrect username")
-                    
+                
             
 
-        EnterUsernameandPassword.bind(on_press=LoginClick)
+        EnterUsernameandPassword.bind(on_press=GeneratePasswords)
         self.add_widget(EnterUsernameandPassword)
 
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         self.add_widget(LoginTitle)
-        
-class PasswordView(Screen):
-    def __init__(self, **kwargs):
-        Screen.__init__(self,**kwargs)
-        self.layout=FloatLayout
-        PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
-        self.add_widget(PasswordViewTitle)
-        def BackClick(self):
-            sm.current="PasswordMenu"
-        PasswordViewBackbutton=Button(text="Back",size_hint=(0.1,0.05),pos_hint={'x':0.0,'y':0.9},color=Black,background_color=green)
-        PasswordViewBackbutton.bind(on_press=BackClick)
-        self.add_widget(PasswordViewBackbutton)
-
-
 
 class PasswordCreation(Screen):
     def __init__(self, **kwargs):
@@ -153,8 +146,6 @@ class PasswordCreation(Screen):
         self.add_widget(NewPasswordTitle)
         #buttons
         def AddPassword(self):
-            PasswordPos_hintX=0
-            PasswordPos_hintY=0
 
             Password=NewPassword.text
             Username=NewUsername.text
@@ -166,52 +157,57 @@ class PasswordCreation(Screen):
             cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(PasswordTitle,Username,Password,User))
             conn.commit()
          
-          
-            PasswordNumberTracker.append("1")
-            PasswordNumber=len(PasswordNumberTracker)
             print(len(PasswordNumberTracker))
+            
+    
+            PasswordNumber=len(PasswordNumberTracker)
+            
+       
+
             PasswordNumberDividedBy5=PasswordNumber/5
             XandYSplit=str(PasswordNumberDividedBy5).split(".")
-            #PasswordPos_hintY=XandYSplit[0]*0.2
-            IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
-            PasswordMenuScreen=sm.get_screen("PasswordMenu")
-            PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
-
-<<<<<<< HEAD
-
-=======
-        NewUsernameTitle=Label(text="Please Enter Your New Username",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.5},color=Black)
-        self.add_widget(NewUsernameTitle)
-        
-        NewPasswordTitle=Label(text="Please Enter Your New Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.3},color=Black)
-        self.add_widget(NewPasswordTitle)
-        #buttons
-        def AddPassword(self):
-            PasswordPos_hintX=0
-            PasswordPos_hintY=0
-
-            Password=NewPassword.text
-            Username=NewUsername.text
-            PasswordTitle=NewPasswordTitleInput.text
-            UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
-            User=UserTracker.read()
-            UserTracker.close()
-            
-            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(PasswordTitle,Username,Password,User))
-            conn.commit()
-         
           
-            PasswordNumberTracker.append("1")
-            PasswordNumber=len(PasswordNumberTracker)
-            print(len(PasswordNumberTracker))
-            PasswordNumber_DividedBy5=PasswordNumber/5
-            if PasswordNumber_DividedBy5.is_integer():#is integer checks whether something is integer
-                PasswordPos_hintX=0
-                PasswordPos_hintY+=0.1
+            PasswordX=int(XandYSplit[1])
+            PasswordY=int(XandYSplit[0])
             
+            PasswordPos_hintX=PasswordX/10
+           
+            PasswordPos_hintY=PasswordY/10
+                
+            def PasswordButtonClick(self):
+                            #work out which where button is in title 
+                            PasswordViewScreen=sm.get_screen("PasswordView")
+                            sm.current="PasswordView"
+
+                            PasswordName=self.text
+                            cursor.execute("SELECT PasswordTitle,Username,Password from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
+                            ItemsReturned=cursor.fetchone()#only fetches one password and returns as tuple which can then be referenced
+                           
+                       
+                            #adds password details to the PasswordViewScreen
+                            ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(ItemsReturned[0]),color=Black)
+                            PasswordViewScreen.add_widget(ViewPasswordTitle)
+
+                            ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(ItemsReturned[1]),color=Black)
+                            PasswordViewScreen.add_widget(ViewPasswordName)
+
+                            ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(ItemsReturned[2]),color=Black)
+                            PasswordViewScreen.add_widget(ViewPassword)
+
+                            
+
             IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
+            IndividualPassword.bind(on_press=PasswordButtonClick)
+            
             PasswordMenuScreen=sm.get_screen("PasswordMenu")
             PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
+            #add 1 to password number 
+            PasswordNumberTracker.append("1")
+            #deletes text in input boxes after new password is made
+            NewPassword.text=""
+            NewUsername.text=""
+            NewPasswordTitleInput.text=""
+          
 
         AddUsernameAndPassword=Button(size_hint=(0.25,0.1),pos_hint={'x':0.7,'y':0.6},text="Add username and password",background_color=green,color=Black)
         AddUsernameAndPassword.bind(on_press=AddPassword)
@@ -219,39 +215,38 @@ class PasswordCreation(Screen):
 
         def BackButtonClick(self):
             sm.current="PasswordMenu"
+            
+        
 
         Backbutton=Button(size_hint=(0.25,0.1),pos_hint={'x':0.0,'y':0.9},text="back",background_color=green,color=Black)
         Backbutton.bind(on_press=BackButtonClick)
         self.add_widget(Backbutton)
 
-class PasswordMenu(Screen):
-      def __init__(self,**kwargs):#Instead of using build to intialise use init 
-        Screen.__init__(self,**kwargs) 
-        self.layout=StackLayout
-        Title=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text="Password Screen",color=Black)
-        self.add_widget(Title)
-        def CreatePasswordClick(self):
-           sm.current="PasswordCreation" #Changes current screen to Password Creation Screen
-        CreatePassword=Button(size_hint=(0.15,0.1),pos_hint={'x':0.0,'y':0.9},text="Create Password",background_color=green,color=Black)
-        CreatePassword.bind(on_press=CreatePasswordClick)
-        self.add_widget(CreatePassword)
->>>>>>> 514d397 (Used list to remove global variables WIP)
-
-        def BackButtonClick(self):
+class PasswordView(Screen):
+    def __init__(self, **kwargs):
+        Screen.__init__(self,**kwargs)
+        self.layout=FloatLayout
+        PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
+        self.add_widget(PasswordViewTitle)
+        def BackClick(self):
+            sm.clear_widgets()
             sm.current="PasswordMenu"
-
-        Backbutton=Button(size_hint=(0.25,0.1),pos_hint={'x':0.0,'y':0.9},text="back",background_color=green,color=Black)
-        Backbutton.bind(on_press=BackButtonClick)
-        self.add_widget(Backbutton)
+           
+        PasswordViewBackbutton=Button(text="Back",size_hint=(0.1,0.05),pos_hint={'x':0.0,'y':0.9},color=Black,background_color=green)
+        PasswordViewBackbutton.bind(on_press=BackClick)
+        self.add_widget(PasswordViewBackbutton)
 
 class PasswordMenu(Screen):
       def __init__(self,**kwargs):#Instead of using build to intialise use init 
         Screen.__init__(self,**kwargs) 
-        self.layout=StackLayout
+        self.layout=FloatLayout
+
         Title=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text="Password Screen",color=Black)
         self.add_widget(Title)
+
         def CreatePasswordClick(self):
            sm.current="PasswordCreation" #Changes current screen to Password Creation Screen
+
         CreatePassword=Button(size_hint=(0.15,0.1),pos_hint={'x':0.0,'y':0.9},text="Create Password",background_color=green,color=Black)
         CreatePassword.bind(on_press=CreatePasswordClick)
         self.add_widget(CreatePassword)
@@ -277,9 +272,11 @@ def main():
 
             sm.current="Login"
             return sm
-
+    
     PasswordManager().run()
     UserTracker=open("UserLoggedin","w")
     UserTracker.write("")   
     UserTracker.close()
+ 
+
 main()
