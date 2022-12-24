@@ -182,8 +182,7 @@ class PasswordCreation(Screen):
                             PasswordName=self.text
                             cursor.execute("SELECT PasswordTitle,Username,Password from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
                             ItemsReturned=cursor.fetchone()#only fetches one password and returns as tuple which can then be referenced
-                           
-                       
+                    
                             #adds password details to the PasswordViewScreen
                             ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(ItemsReturned[0]),color=Black)
                             PasswordViewScreen.add_widget(ViewPasswordTitle)
@@ -193,17 +192,7 @@ class PasswordCreation(Screen):
 
                             ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(ItemsReturned[2]),color=Black)
                             PasswordViewScreen.add_widget(ViewPassword)
-
-                            def BackClick():
-                                PasswordViewScreen.remove_widget(ViewPasswordTitle)
-                                PasswordViewScreen.remove_widget(ViewPassword)
-                                PasswordViewScreen.remove_widget(ViewPasswordName)
-                                sm.current("PasswordMenu")
-
-                            PasswordViewBackbutton=Button(text="Back",size_hint=(0.1,0.05),pos_hint={'x':0.0,'y':0.9},color=Black,background_color=green)
-                            PasswordViewBackbutton.bind(on_press=BackClick)
-                            PasswordViewScreen.add_widget(PasswordViewBackbutton)
-                            
+                        
             IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
             IndividualPassword.bind(on_press=PasswordButtonClick)
             
@@ -236,7 +225,10 @@ class PasswordView(Screen):
         self.layout=FloatLayout
         PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
         self.add_widget(PasswordViewTitle)
-      
+        def back
+        PasswordViewBackbutton=Button(text="Back",size_hint=(0.1,0.05),pos_hint={'x':0.0,'y':0.9},color=Black,background_color=green)
+        PasswordViewBackbutton.bind(on_press=BackClick)                    
+        self.add_widget(PasswordViewBackbutton)
        
     
 
@@ -282,5 +274,5 @@ def main():
     UserTracker.write("")   
     UserTracker.close()
  
-
+    print("vscode work")
 main()
