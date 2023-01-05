@@ -23,6 +23,7 @@ cursor=conn.cursor()#adds connection to cursor
 sm=ScreenManager(transition=NoTransition())
 
 PasswordNumberTracker=[]
+WidgetTracker=[]
 class Login(Screen):#Create different windows class
     
     def __init__(self,**kwargs):#Instead of using build to intialise use init as build does not work with screen class
@@ -121,6 +122,7 @@ class Login(Screen):#Create different windows class
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         self.add_widget(LoginTitle)
 
+
 class PasswordCreation(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self,**kwargs)
@@ -182,17 +184,23 @@ class PasswordCreation(Screen):
                             PasswordName=self.text
                             cursor.execute("SELECT PasswordTitle,Username,Password from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
                             ItemsReturned=cursor.fetchone()#only fetches one password and returns as tuple which can then be referenced
-                    
+                           
+                       
                             #adds password details to the PasswordViewScreen
                             ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(ItemsReturned[0]),color=Black)
-                            PasswordViewScreen.add_widget(ViewPasswordTitle)
+                            PasswordView.add_widget(ViewPasswordTitle)
 
                             ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(ItemsReturned[1]),color=Black)
-                            PasswordViewScreen.add_widget(ViewPasswordName)
+                            PasswordView.add_widget(ViewPasswordName)
 
                             ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(ItemsReturned[2]),color=Black)
-                            PasswordViewScreen.add_widget(ViewPassword)
-                        
+                            PasswordView.add_widget(ViewPassword)
+
+
+                            
+                     
+                           
+                            
             IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
             IndividualPassword.bind(on_press=PasswordButtonClick)
             
@@ -225,12 +233,14 @@ class PasswordView(Screen):
         self.layout=FloatLayout
         PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
         self.add_widget(PasswordViewTitle)
-        def back
-        PasswordViewBackbutton=Button(text="Back",size_hint=(0.1,0.05),pos_hint={'x':0.0,'y':0.9},color=Black,background_color=green)
-        PasswordViewBackbutton.bind(on_press=BackClick)                    
-        self.add_widget(PasswordViewBackbutton)
-       
-    
+        
+        def BackClick(self):
+            self.remove_widget(PasswordViewTitle)
+        PasswordViewBackButton=Button(text="Back" ,size_hint=(0.25,0.1),pos_hint={"x":0.0,"y":0.9},color=Black) 
+        PasswordViewBackButton.bind(on_release=BackClick)
+        self.add_widget(PasswordViewBackButton)
+        
+        
 
 class PasswordMenu(Screen):
       def __init__(self,**kwargs):#Instead of using build to intialise use init 
@@ -257,7 +267,8 @@ def main():
     (PasswordTitle text,
     Username text
     ,Password text
-    ,User text )""") #inside are columns/categorys            
+    ,User text )""") #inside are columns/categorys  
+
     sm.add_widget(PasswordView(name="PasswordView"))
     sm.add_widget(Login(name="Login"))
     sm.add_widget(PasswordMenu(name="PasswordMenu"))
@@ -274,5 +285,5 @@ def main():
     UserTracker.write("")   
     UserTracker.close()
  
-    print("vscode work")
+
 main()
