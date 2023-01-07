@@ -9,7 +9,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.lang import Builder
 from kivy.core.window import Window
-
+from kivy.properties import StringProperty
 
 green = [0, 1, 0, 1] #RGBA values /255
 Grey=[0.8,0.8,0.8,1]
@@ -24,6 +24,7 @@ sm=ScreenManager(transition=NoTransition())
 
 PasswordNumberTracker=[]
 WidgetTracker=[]
+Quantity=[]
 class Login(Screen):#Create different windows class
     
     def __init__(self,**kwargs):#Instead of using build to intialise use init as build does not work with screen class
@@ -70,26 +71,32 @@ class Login(Screen):#Create different windows class
                         PasswordMenuScreen=sm.get_screen("PasswordMenu")
                         sm.current="PasswordMenu"
 
-                        def PasswordButtonClick(self):
+                        def PasswordButtonClick(self):#FOR BUTTONS MADE IN A PREVIOUS INTANCE OF AN APP
                             #work out which where button is in title 
                             PasswordViewScreen=sm.get_screen("PasswordView")
                             sm.current="PasswordView"
 
                             PasswordName=self.text
                             cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
-                            DisplayPassword=cursor.fetchall()
+                            DisplayPassword=cursor.fetchone()
+                            print(DisplayPassword)
+                            Quantity.append("1")
+                            print(len(Quantity))
 
-                            ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=row[0],color=Black)
-                            PasswordViewScreen.add_widget(ViewPasswordTitle)
+                         
 
-                            ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=row[1],color=Black)
-                            PasswordViewScreen.add_widget(ViewPasswordName)
+                            ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(DisplayPassword[0]),color=Black)
 
-                            ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=row[2],color=Black)
-                            PasswordViewScreen.add_widget(ViewPassword)
+                            ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(DisplayPassword[1]),color=Black)
 
-        
+                            ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(DisplayPassword[2]),color=Black)
 
+                            if len(Quantity)==1:
+                                PasswordViewScreen.add_widget(ViewPassword)
+                                PasswordViewScreen.add_widget(ViewPasswordName)
+                                PasswordViewScreen.add_widget(ViewPasswordTitle)
+                         
+                          
                         IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
                         IndividualPassword.bind(on_press=PasswordButtonClick)
 
@@ -121,6 +128,9 @@ class Login(Screen):#Create different windows class
 
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         self.add_widget(LoginTitle)
+        
+
+        
 
 
 class PasswordCreation(Screen):
@@ -175,26 +185,28 @@ class PasswordCreation(Screen):
             PasswordPos_hintX=PasswordX/10
            
             PasswordPos_hintY=PasswordY/10
-                
-            def PasswordButtonClick(self):
+            
+            def PasswordButtonClick(self):#ONLY FOR NEW BUTTONS CREATED IN SAME SESSION OF APP
                             #work out which where button is in title 
-                            PasswordViewScreen=sm.get_screen("PasswordView")
                             sm.current="PasswordView"
-
+                            GetPasswordView=sm.get_screen("PasswordView")
                             PasswordName=self.text
                             cursor.execute("SELECT PasswordTitle,Username,Password from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
                             ItemsReturned=cursor.fetchone()#only fetches one password and returns as tuple which can then be referenced
-                           
-                       
+                            
+                        
+
                             #adds password details to the PasswordViewScreen
                             ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(ItemsReturned[0]),color=Black)
-                            PasswordView.add_widget(ViewPasswordTitle)
+                            GetPasswordView.add_widget(ViewPasswordTitle)
 
                             ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(ItemsReturned[1]),color=Black)
-                            PasswordView.add_widget(ViewPasswordName)
+                            GetPasswordView.add_widget(ViewPasswordName)
 
                             ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(ItemsReturned[2]),color=Black)
-                            PasswordView.add_widget(ViewPassword)
+                            GetPasswordView.add_widget(ViewPassword)
+                            
+                            print("steve")
 
 
                             
@@ -221,8 +233,6 @@ class PasswordCreation(Screen):
         def BackButtonClick(self):
             sm.current="PasswordMenu"
             
-        
-
         Backbutton=Button(size_hint=(0.25,0.1),pos_hint={'x':0.0,'y':0.9},text="back",background_color=green,color=Black)
         Backbutton.bind(on_press=BackButtonClick)
         self.add_widget(Backbutton)
@@ -233,9 +243,10 @@ class PasswordView(Screen):
         self.layout=FloatLayout
         PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
         self.add_widget(PasswordViewTitle)
-        
+
         def BackClick(self):
-            self.remove_widget(PasswordViewTitle)
+            sm.current="PasswordMenu"
+
         PasswordViewBackButton=Button(text="Back" ,size_hint=(0.25,0.1),pos_hint={"x":0.0,"y":0.9},color=Black) 
         PasswordViewBackButton.bind(on_release=BackClick)
         self.add_widget(PasswordViewBackButton)
