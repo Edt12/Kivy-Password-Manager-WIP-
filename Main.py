@@ -71,7 +71,7 @@ class Login(Screen):#Create different windows class
                         PasswordMenuScreen=sm.get_screen("PasswordMenu")
                         sm.current="PasswordMenu"
 
-                        def PasswordButtonClick(self):#FOR BUTTONS MADE IN A PREVIOUS INTANCE OF AN APP
+                        def PasswordButtonClickLogin(self):#FOR BUTTONS MADE IN A PREVIOUS INTANCE OF AN APP
                             #work out which where button is in title 
                             PasswordViewScreen=sm.get_screen("PasswordView")
                             sm.current="PasswordView"
@@ -83,22 +83,38 @@ class Login(Screen):#Create different windows class
                             Quantity.append("1")
                             print(len(Quantity))
 
-                         
+                            Widgets=[]
 
                             ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(DisplayPassword[0]),color=Black)
 
                             ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(DisplayPassword[1]),color=Black)
 
                             ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(DisplayPassword[2]),color=Black)
-
-                            if len(Quantity)==1:
-                                PasswordViewScreen.add_widget(ViewPassword)
-                                PasswordViewScreen.add_widget(ViewPasswordName)
-                                PasswordViewScreen.add_widget(ViewPasswordTitle)
-                         
-                          
+                            print("steve1")
+                            Widgets.append(ViewPassword)
+                            Widgets.append(ViewPasswordName)
+                            Widgets.append(ViewPasswordTitle)
+                            print("steve2")
+                            print(Widgets)
+                            if Quantity==1:
+                                PasswordViewScreen.add_widget(Quantity[0])
+                                PasswordViewScreen.add_widget(Quantity[1])
+                                PasswordViewScreen.add_widget(Quantity[2])
+                                print("steve")
+                            if Quantity==2:
+                                PasswordViewScreen.add_widget(Quantity[3])
+                                PasswordViewScreen.add_widget(Quantity[4])
+                                PasswordViewScreen.add_widget(Quantity[5])
+                                PasswordViewScreen.remove_widget(Quantity[0])
+                                PasswordViewScreen.remove_widget(Quantity[1])
+                                PasswordViewScreen.remove_widget(Quantity[2])
+                                Widgets.remove(Widgets[0])
+                                Widgets.remove(Widgets[1])
+                                Widgets.remove(Widgets[2])
+                                Quantity.clear()
+                            print("steve3")
                         IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
-                        IndividualPassword.bind(on_press=PasswordButtonClick)
+                        IndividualPassword.bind(on_press=PasswordButtonClickLogin)
 
                         PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
                         PasswordPos_hintX+=0.2
