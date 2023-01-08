@@ -96,11 +96,11 @@ class Login(Screen):#Create different windows class
                             Widgets.append(ViewPasswordTitle)
                             print("steve2")
                             print(Widgets)
-                            if Quantity==1:
-                                PasswordViewScreen.add_widget(Quantity[0])
-                                PasswordViewScreen.add_widget(Quantity[1])
-                                PasswordViewScreen.add_widget(Quantity[2])
-                                print("steve")
+                           
+                            PasswordViewScreen.add_widget(Quantity[0])
+                            PasswordViewScreen.add_widget(Quantity[1])
+                            PasswordViewScreen.add_widget(Quantity[2])
+                            print("steve")
                             if Quantity==2:
                                 PasswordViewScreen.add_widget(Quantity[3])
                                 PasswordViewScreen.add_widget(Quantity[4])
