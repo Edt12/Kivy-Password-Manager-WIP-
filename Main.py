@@ -25,6 +25,7 @@ sm=ScreenManager(transition=NoTransition())
 PasswordNumberTracker=[]
 WidgetTracker=[]
 Quantity=[]
+Widgets=[]
 class Login(Screen):#Create different windows class
     
     def __init__(self,**kwargs):#Instead of using build to intialise use init as build does not work with screen class
@@ -83,7 +84,7 @@ class Login(Screen):#Create different windows class
                             Quantity.append("1")
                             print(len(Quantity))
 
-                            Widgets=[]
+                           
 
                             ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(DisplayPassword[0]),color=Black)
 
@@ -95,24 +96,27 @@ class Login(Screen):#Create different windows class
                             Widgets.append(ViewPasswordName)
                             Widgets.append(ViewPasswordTitle)
                             print("steve2")
-                            print(Widgets)
-                           
-                            PasswordViewScreen.add_widget(Quantity[0])
-                            PasswordViewScreen.add_widget(Quantity[1])
-                            PasswordViewScreen.add_widget(Quantity[2])
+                            print(len(Widgets))
+                            if len(Quantity)==1:
+                                PasswordViewScreen.add_widget(Widgets[0])
+                                PasswordViewScreen.add_widget(Widgets[1])
+                                PasswordViewScreen.add_widget(Widgets[2])
                             print("steve")
-                            if Quantity==2:
-                                PasswordViewScreen.add_widget(Quantity[3])
-                                PasswordViewScreen.add_widget(Quantity[4])
-                                PasswordViewScreen.add_widget(Quantity[5])
-                                PasswordViewScreen.remove_widget(Quantity[0])
-                                PasswordViewScreen.remove_widget(Quantity[1])
-                                PasswordViewScreen.remove_widget(Quantity[2])
-                                Widgets.remove(Widgets[0])
-                                Widgets.remove(Widgets[1])
-                                Widgets.remove(Widgets[2])
+                            if len(Quantity)==2:
                                 Quantity.clear()
-                            print("steve3")
+                                PasswordViewScreen.remove_widget(Widgets[0])
+                                PasswordViewScreen.remove_widget(Widgets[1])
+                                PasswordViewScreen.remove_widget(Widgets[2])
+                                Widgets.pop(Widgets[0])
+                                Widgets.pop(Widgets[1])
+                                Widgets.pop(Widgets[2])
+                                print(Widgets)
+                                PasswordViewScreen.add_widget(Widgets[3])
+                                PasswordViewScreen.add_widget(Widgets[4])
+                                PasswordViewScreen.add_widget(Widgets[5])
+                                print(len(Widgets))
+                               
+                       
                         IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
                         IndividualPassword.bind(on_press=PasswordButtonClickLogin)
 
@@ -152,7 +156,7 @@ class Login(Screen):#Create different windows class
 class PasswordCreation(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self,**kwargs)
-        self.layout=FloatLayout
+        self.layout=FloatLayout()
         #input boxes
         NewPasswordTitleInput=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
         self.add_widget(NewPasswordTitleInput)
