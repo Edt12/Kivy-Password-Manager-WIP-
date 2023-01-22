@@ -33,8 +33,7 @@ def PasswordViewButtonClick(self):
     cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
     DisplayPassword=cursor.fetchone()
     print(DisplayPassword)
-    Quantity.append("1")
-    print(len(Quantity))
+ 
     print("DisplayPassword 0:"+str(DisplayPassword[0]))
                            
     PasswordViewScreen.clear_widgets()
@@ -83,23 +82,40 @@ class Login(Screen):#Create different windows class
             UsersAndPasswords=cursor.fetchall()
             UserName=Username.text
             PassWord=Password.text
+            HashedUsername=hash(UserName)
+            print(HashedUsername)
+            HashedPassword=hash(PassWord)
+            print(UsersAndPasswords)
+
+            if UsersAndPasswords==[]:
+                cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(HashedUsername,HashedPassword))
+                conn.commit()
+                print("New User Added 1")
+
             for row in UsersAndPasswords:
-                if row[0]!=UserName:
-                  
-                    cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(UserName,PassWord))
+                if row[0]!=HashedUsername:
+                    cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(HashedUsername,HashedPassword))
+                    conn.commit()
                     print("New User Added")
+            
+
         CreateNewUser.bind(on_press=CreateNewUserClick)
         self.add_widget(CreateNewUser)
 
         def GeneratePasswords(self):
             cursor.execute("SELECT * From UsersAndPasswords")
             Table=cursor.fetchall()
-            username=cursor.execute("SELECT Username From UsersAndPasswords")
-            
-
-            for row in Table:#goes through every row in UserAndPasswords
-                if row[0]== Username.text and row[1]== Password.text:
-
+            UserName=hash(Username.text)
+            PassWord=hash(Password.text)
+            print(Table)
+          
+            for row in Table:#goes through every row in UsersAndPasswords
+                print(row[0])
+                print(row[1])
+                print(UserName)
+                print(PassWord)
+                if row[0]==UserName and row[1]== PassWord:#Need to figure out better login system as seed of hash can be different depending on an objects address in memory
+                   
                     print("Both Correct")
                     User=Username.text
                     sm.current="PasswordMenu"
@@ -257,8 +273,8 @@ class PasswordMenu(Screen):
 def main():
     #creates SQlite Database
     cursor.execute("""create table IF NOT EXISTS UsersAndPasswords 
-    (Username text
-    ,Password text 
+    (Username int
+    ,Password int
     )""")#inside are columns/categorys
     cursor.execute("""create table IF NOT EXISTS UserPasswords
     (PasswordTitle text,
@@ -281,6 +297,5 @@ def main():
     UserTracker=open("UserLoggedin","w")
     UserTracker.write("")   
     UserTracker.close()
- 
 
 main()
