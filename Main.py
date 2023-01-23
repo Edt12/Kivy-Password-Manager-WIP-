@@ -1,5 +1,6 @@
 import sqlite3
 import hashlib
+from cryptography.fernet import Fernet
 from kivy.uix.screenmanager import ScreenManager, Screen,NoTransition #Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
 from kivy.app import App
 from kivy.uix.button import Button
@@ -19,7 +20,15 @@ Black=[0,0,0,1]
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
 
-
+key=Fernet.generate_key()#makes encryption key
+Key=Fernet(key)#makes it object which can be called
+print(Key)
+message="ryan is toes"
+correct=message.encode()#In order to be encrypted a the thing your trying to encrypt has to be encoded
+Encrypted=Key.encrypt(correct)#Next encrypted
+Decrypted=Key.decrypt(Encrypted)#Then decrypt
+print(Encrypted)
+print(Decrypted.decode())#then decode to get original value
 sm=ScreenManager(transition=NoTransition())
  
 PasswordNumberTracker=[]
@@ -31,19 +40,31 @@ def PasswordViewButtonClick(self):
     PasswordViewScreen=sm.get_screen(sm.current)
 
     PasswordName=self.text
-    cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(PasswordName,))
+    EncodedPasswordName=PasswordName.encode()
+    EncryptedPasswordName=Key.encrypt(EncodedPasswordName)
+    cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(EncryptedPasswordName,))
     DisplayPassword=cursor.fetchone()
     print(DisplayPassword)
+
+    EncryptedPasswordTitle=DisplayPassword[0]
+    DecryptedPasswordTitle=Key.decrypt(EncryptedPasswordTitle)
+    PasswordTitle=DecryptedPasswordTitle.decode()
  
-    print("DisplayPassword 0:"+str(DisplayPassword[0]))
-                           
+    EncryptedUsername=DisplayPassword[1]
+    DecryptedUsername=Key.decrypt(EncryptedUsername)   
+    Username=DecryptedPasswordTitle.decode()  
+
+    EncryptedPassword=DisplayPassword[2]
+    DecryptedPassword=Key.decrypt(EncryptedPassword)     
+    Password=DecryptedPassword.decode()
+
     PasswordViewScreen.clear_widgets()
 
-    ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(DisplayPassword[0]),color=Black)
+    ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(PasswordTitle),color=Black)
 
-    ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(DisplayPassword[1]),color=Black)
+    Username=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(Username),color=Black)
 
-    ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(DisplayPassword[2]),color=Black)                            
+    ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(Password),color=Black)                            
                          
     PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
     PasswordViewScreen.add_widget(PasswordViewTitle)
@@ -57,7 +78,7 @@ def PasswordViewButtonClick(self):
                        
                         
     PasswordViewScreen.add_widget(ViewPasswordTitle)
-    PasswordViewScreen.add_widget(ViewPasswordName)
+    PasswordViewScreen.add_widget(Username)
     PasswordViewScreen.add_widget(ViewPassword)
 
 class Login(Screen):#Create different windows class
@@ -91,7 +112,7 @@ class Login(Screen):#Create different windows class
             HashedUsername=hashlib.sha3_512(EncodedUsername)
             print(str(HashedUsername))
 
-            HashedPassword=hashlib.sha3_512(EncodedPassword)#hashes passwod with SHa3_512
+            HashedPassword=hashlib.sha3_512(EncodedPassword)#hashes password with SHa3_512
             print(UsersAndPasswords)
 
             if UsersAndPasswords==[]:#uses hex digest so it can be supported by sqlite3 and able to be inserted
@@ -126,10 +147,10 @@ class Login(Screen):#Create different windows class
                 print(row[1])
                 print(UserName)
                 print(PassWord)
-                if row[0]==HashedUsername.hexdigest() and row[1]== HashedPassword.hexdigest():#Need to figure out better login system as seed of hash can be different depending on an objects address in memory
+                if row[0]==HashedUsername.hexdigest() and row[1]== HashedPassword.hexdigest():
                    
                     print("Both Correct")
-                    User=Username.text
+                  
                     sm.current="PasswordMenu"
                     UserTracker=open("UserLoggedin","w")
                     UserTracker.write(HashedUsername.hexdigest())
@@ -143,7 +164,10 @@ class Login(Screen):#Create different windows class
                     PasswordPos_hintX=0.0
                     PasswordPos_hintY=0.0
                     for row in Table:
-                        PasswordTitle=row[0]
+                        EncryptedPasswordTitle=row[0]
+                        DecryptedPasswordTitle=Key.decrypt(EncryptedPasswordTitle)
+                        PasswordTitle=DecryptedPasswordTitle.decode()
+
                         PasswordMenuScreen=sm.get_screen("PasswordMenu")
                         sm.current="PasswordMenu"
 
@@ -209,13 +233,22 @@ class PasswordCreation(Screen):
         def AddPassword(self):
 
             Password=NewPassword.text
+            EncodedPassword=Password.encode()
+            EncryptedPassword=Key.encrypt(EncodedPassword)
+
             Username=NewUsername.text
+            EncodedUsername=Username.encode()
+            EncryptedUsername=Key.encrypt(EncodedPassword)
+
             PasswordTitle=NewPasswordTitleInput.text
+            EncodedPasswordTitle=PasswordTitle.encode()
+            EncryptedPassworditle=Key.encrypt(EncodedPasswordTitle)
+
             UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
             User=UserTracker.read()
             UserTracker.close()
             
-            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(PasswordTitle,Username,Password,User))
+            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(EncryptedPassworditle,EncryptedUsername,EncryptedPassword,User))
             conn.commit()
          
             print(len(PasswordNumberTracker))
@@ -289,10 +322,10 @@ def main():
     ,Password blob
     )""")#inside are columns/categorys
     cursor.execute("""create table IF NOT EXISTS UserPasswords
-    (PasswordTitle text,
-    Username text
-    ,Password text
-    ,User text )""") #inside are columns/categorys  
+    (PasswordTitle blob,
+    Username blob
+    ,Password blob
+    ,User blob )""") #inside are columns/categorys  
 
     sm.add_widget(PasswordView(name="PasswordView"))
     sm.add_widget(Login(name="Login"))
@@ -309,5 +342,4 @@ def main():
     UserTracker=open("UserLoggedin","w")
     UserTracker.write("")   
     UserTracker.close()
-    cursor.execute("Drop Table UserPasswords")
 main()
