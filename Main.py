@@ -1,4 +1,5 @@
 import sqlite3
+import hashlib
 from kivy.uix.screenmanager import ScreenManager, Screen,NoTransition #Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
 from kivy.app import App
 from kivy.uix.button import Button
@@ -20,7 +21,7 @@ cursor=conn.cursor()#adds connection to cursor
 
 
 sm=ScreenManager(transition=NoTransition())
-
+ 
 PasswordNumberTracker=[]
 WidgetTracker=[]
 Quantity=[]
@@ -43,7 +44,7 @@ def PasswordViewButtonClick(self):
     ViewPasswordName=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(DisplayPassword[1]),color=Black)
 
     ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(DisplayPassword[2]),color=Black)                            
-                       
+                         
     PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
     PasswordViewScreen.add_widget(PasswordViewTitle)
 
@@ -80,21 +81,27 @@ class Login(Screen):#Create different windows class
         def CreateNewUserClick(self):
             cursor.execute("SELECT * From UsersAndPasswords")
             UsersAndPasswords=cursor.fetchall()
-            UserName=Username.text
+
+            UserName=Username.text#takes text from input boxes
             PassWord=Password.text
-            HashedUsername=hash(UserName)
-            print(HashedUsername)
-            HashedPassword=hash(PassWord)
+
+            EncodedUsername=UserName.encode()#before hashed strings have to be encoded
+            EncodedPassword=PassWord.encode()
+
+            HashedUsername=hashlib.sha3_512(EncodedUsername)
+            print(str(HashedUsername))
+
+            HashedPassword=hashlib.sha3_512(EncodedPassword)#hashes passwod with SHa3_512
             print(UsersAndPasswords)
 
-            if UsersAndPasswords==[]:
-                cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(HashedUsername,HashedPassword))
+            if UsersAndPasswords==[]:#uses hex digest so it can be supported by sqlite3 and able to be inserted
+                cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(HashedUsername.hexdigest(),HashedPassword.hexdigest()))
                 conn.commit()
                 print("New User Added 1")
 
             for row in UsersAndPasswords:
-                if row[0]!=HashedUsername:
-                    cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(HashedUsername,HashedPassword))
+                if row[0]!=HashedUsername.hexdigest():
+                    cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(HashedUsername.hexdigest(),HashedPassword.hexdigest()))
                     conn.commit()
                     print("New User Added")
             
@@ -105,22 +112,27 @@ class Login(Screen):#Create different windows class
         def GeneratePasswords(self):
             cursor.execute("SELECT * From UsersAndPasswords")
             Table=cursor.fetchall()
-            UserName=hash(Username.text)
-            PassWord=hash(Password.text)
-            print(Table)
-          
+            UserName=Username.text
+            PassWord=Password.text
+            EncodedUsername=UserName.encode()#before hashed strings have to be encoded
+            EncodedPassword=PassWord.encode()
+            HashedUsername=hashlib.sha3_512(EncodedUsername)
+            print(str(HashedUsername))
+            HashedPassword=hashlib.sha3_512(EncodedPassword)#hashes passwod with SHa3_512
+
+            
             for row in Table:#goes through every row in UsersAndPasswords
                 print(row[0])
                 print(row[1])
                 print(UserName)
                 print(PassWord)
-                if row[0]==UserName and row[1]== PassWord:#Need to figure out better login system as seed of hash can be different depending on an objects address in memory
+                if row[0]==HashedUsername.hexdigest() and row[1]== HashedPassword.hexdigest():#Need to figure out better login system as seed of hash can be different depending on an objects address in memory
                    
                     print("Both Correct")
                     User=Username.text
                     sm.current="PasswordMenu"
                     UserTracker=open("UserLoggedin","w")
-                    UserTracker.write(User)
+                    UserTracker.write(HashedUsername.hexdigest())
     
                     UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
                     User=UserTracker.read()
@@ -150,11 +162,11 @@ class Login(Screen):#Create different windows class
                             
                        
            
-                        if row[0]== Username.text and row[1]!= Password.text:
+                        if row[0]== HashedUsername.hexdigest() and row[1]!= HashedPassword.hexdigest():
                             Password.text==""
                             print("incorrect Username or Password")
 
-                        if row[0]!= Username.text and row[1]== Password.text:
+                        if row[0]!=HashedUsername and row[1]== HashedPassword:
                             Username.text==""
                             print("incorrect Username or Password")
                 
@@ -273,8 +285,8 @@ class PasswordMenu(Screen):
 def main():
     #creates SQlite Database
     cursor.execute("""create table IF NOT EXISTS UsersAndPasswords 
-    (Username int
-    ,Password int
+    (Username blob
+    ,Password blob
     )""")#inside are columns/categorys
     cursor.execute("""create table IF NOT EXISTS UserPasswords
     (PasswordTitle text,
@@ -297,5 +309,5 @@ def main():
     UserTracker=open("UserLoggedin","w")
     UserTracker.write("")   
     UserTracker.close()
-
+    cursor.execute("Drop Table UserPasswords")
 main()
