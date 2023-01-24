@@ -30,7 +30,16 @@ Decrypted=Key.decrypt(Encrypted)#Then decrypt
 print(Encrypted)
 print(Decrypted.decode())#then decode to get original value
 sm=ScreenManager(transition=NoTransition())
- 
+def Encrypt(Data):
+    EncodedData=str(Data).encode()
+    EncryptedData=Key.encrypt(EncodedData)
+    return EncryptedData
+    
+def Decrypt(Data):
+    Data=bytes(Data,'utf-8')
+    DecryptedData=Key.decrypt(Data)
+    return DecryptedData
+
 PasswordNumberTracker=[]
 WidgetTracker=[]
 Quantity=[]
@@ -159,19 +168,18 @@ class Login(Screen):#Create different windows class
                     User=UserTracker.read()
                     print(User)
                     cursor.execute("SELECT * from UserPasswords WHERE User = (?)",(User,))
-                    Table=cursor.fetchall()
+                    Table=cursor.fetchone()
                     print(Table)
                     PasswordPos_hintX=0.0
                     PasswordPos_hintY=0.0
                     for row in Table:
-                        EncryptedPasswordTitle=row[0]
-                        DecryptedPasswordTitle=Key.decrypt(EncryptedPasswordTitle)
-                        PasswordTitle=DecryptedPasswordTitle.decode()
-
+                       
+                    
+                        
                         PasswordMenuScreen=sm.get_screen("PasswordMenu")
                         sm.current="PasswordMenu"
 
-                        IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
+                        IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(Decrypt(Data=row[0])),background_color=green,color=Black,)
                         IndividualPassword.bind(on_press=PasswordViewButtonClick)
 
                         PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
@@ -231,10 +239,8 @@ class PasswordCreation(Screen):
         self.add_widget(NewPasswordTitle)
         #buttons
         def AddPassword(self):
-
-            Password=NewPassword.text
-            EncodedPassword=Password.encode()
-            EncryptedPassword=Key.encrypt(EncodedPassword)
+            Password=Password.text
+            Encrypt(Data=Password)
 
             Username=NewUsername.text
             EncodedUsername=Username.encode()
@@ -248,7 +254,7 @@ class PasswordCreation(Screen):
             User=UserTracker.read()
             UserTracker.close()
             
-            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(EncryptedPassworditle,EncryptedUsername,EncryptedPassword,User))
+            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(PasswordTitle,PasswordTitle,PasswordTitle,User))
             conn.commit()
          
             print(len(PasswordNumberTracker))
