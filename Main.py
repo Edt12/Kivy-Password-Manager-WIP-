@@ -19,9 +19,9 @@ Black=[0,0,0,1]
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
+cypher=Fernet.generate_key()
+Key=Fernet(cypher)#makes it object which can be called
 
-key=Fernet.generate_key()#makes encryption key
-Key=Fernet(key)#makes it object which can be called
 print(Key)
 message="ryan is toes"
 correct=message.encode()#In order to be encrypted a the thing your trying to encrypt has to be encoded
@@ -35,8 +35,8 @@ def Encrypt(Data):
     EncryptedData=Key.encrypt(EncodedData)
     return EncryptedData
     
-def Decrypt(Data):
-    Data=bytes(Data,'utf-8')
+def Decrypt(Data): 
+    Data=bytes(str(Data),'utf-8')
     DecryptedData=Key.decrypt(Data)
     return DecryptedData
 
