@@ -1,6 +1,7 @@
 import sqlite3
 import hashlib
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from kivy.uix.screenmanager import ScreenManager, Screen,NoTransition #Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
 from kivy.app import App
 from kivy.uix.button import Button
@@ -19,10 +20,7 @@ Black=[0,0,0,1]
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
-cypher=Fernet.generate_key()
-Key=Fernet(cypher)#makes it object which can be called
 
-print(Key)
 message="ryan is toes"
 correct=message.encode()#In order to be encrypted a the thing your trying to encrypt has to be encoded
 Encrypted=Key.encrypt(correct)#Next encrypted
@@ -157,7 +155,9 @@ class Login(Screen):#Create different windows class
                 print(UserName)
                 print(PassWord)
                 if row[0]==HashedUsername.hexdigest() and row[1]== HashedPassword.hexdigest():
-                   
+                    #Create encryption Key
+                                      
+                    Key=Scrypt()
                     print("Both Correct")
                   
                     sm.current="PasswordMenu"
