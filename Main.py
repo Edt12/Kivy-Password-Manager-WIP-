@@ -1,5 +1,6 @@
 import sqlite3
 import hashlib
+import os
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from kivy.uix.screenmanager import ScreenManager, Screen,NoTransition #Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
@@ -20,73 +21,25 @@ Black=[0,0,0,1]
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
-
-message="ryan is toes"
-correct=message.encode()#In order to be encrypted a the thing your trying to encrypt has to be encoded
-Encrypted=Key.encrypt(correct)#Next encrypted
-Decrypted=Key.decrypt(Encrypted)#Then decrypt
-print(Encrypted)
-print(Decrypted.decode())#then decode to get original value
+salt=os.urandom(15)
+KeyDerivationFunction=Scrypt(salt=salt,length=32,n=2**20,r=10,p=3)
+def GenerateKey(UsernameAndPassword):
+    Key=KeyDerivationFunction.derive(bytes(UsernameAndPassword))
+    return Key
 sm=ScreenManager(transition=NoTransition())
 def Encrypt(Data):
-    EncodedData=str(Data).encode()
-    EncryptedData=Key.encrypt(EncodedData)
-    return EncryptedData
-    
+    pass
 def Decrypt(Data): 
-    Data=bytes(str(Data),'utf-8')
-    DecryptedData=Key.decrypt(Data)
-    return DecryptedData
+    pass
+def PasswordViewButtonClick(self):
+    pass
 
+
+            
 PasswordNumberTracker=[]
 WidgetTracker=[]
 Quantity=[]
 Widgets=[]
-def PasswordViewButtonClick(self):
-    sm.current="PasswordView"
-    PasswordViewScreen=sm.get_screen(sm.current)
-
-    PasswordName=self.text
-    EncodedPasswordName=PasswordName.encode()
-    EncryptedPasswordName=Key.encrypt(EncodedPasswordName)
-    cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(EncryptedPasswordName,))
-    DisplayPassword=cursor.fetchone()
-    print(DisplayPassword)
-
-    EncryptedPasswordTitle=DisplayPassword[0]
-    DecryptedPasswordTitle=Key.decrypt(EncryptedPasswordTitle)
-    PasswordTitle=DecryptedPasswordTitle.decode()
- 
-    EncryptedUsername=DisplayPassword[1]
-    DecryptedUsername=Key.decrypt(EncryptedUsername)   
-    Username=DecryptedPasswordTitle.decode()  
-
-    EncryptedPassword=DisplayPassword[2]
-    DecryptedPassword=Key.decrypt(EncryptedPassword)     
-    Password=DecryptedPassword.decode()
-
-    PasswordViewScreen.clear_widgets()
-
-    ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(PasswordTitle),color=Black)
-
-    Username=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(Username),color=Black)
-
-    ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(Password),color=Black)                            
-                         
-    PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
-    PasswordViewScreen.add_widget(PasswordViewTitle)
-
-    def BackClick(self):
-        sm.current="PasswordMenu"
-
-    PasswordViewBackButton=Button(text="Back" ,size_hint=(0.25,0.1),pos_hint={"x":0.0,"y":0.9},color=Black) 
-    PasswordViewBackButton.bind(on_release=BackClick)
-    PasswordViewScreen.add_widget(PasswordViewBackButton)
-                       
-                        
-    PasswordViewScreen.add_widget(ViewPasswordTitle)
-    PasswordViewScreen.add_widget(Username)
-    PasswordViewScreen.add_widget(ViewPassword)
 
 class Login(Screen):#Create different windows class
     
@@ -106,6 +59,13 @@ class Login(Screen):#Create different windows class
         EnterUsernameandPassword=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.5},text="Enter",background_color=green)
 
         CreateNewUser=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.4},text="Create New User",background_color=green)
+
+        EnterUsernameandPassword.bind(on_press=GeneratePasswords)
+        self.add_widget(EnterUsernameandPassword)
+
+        LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
+        self.add_widget(LoginTitle)
+        
         def CreateNewUserClick(self):
             cursor.execute("SELECT * From UsersAndPasswords")
             UsersAndPasswords=cursor.fetchall()
@@ -150,14 +110,24 @@ class Login(Screen):#Create different windows class
 
             
             for row in Table:#goes through every row in UsersAndPasswords
+                
                 print(row[0])
                 print(row[1])
                 print(UserName)
                 print(PassWord)
                 if row[0]==HashedUsername.hexdigest() and row[1]== HashedPassword.hexdigest():
                     #Create encryption Key
-                                      
-                    Key=Scrypt()
+                    UsernameAndPassword=(UserName+PassWord)                 
+                    Key=GenerateKey(UsernameAndPassword=UsernameAndPassword)
+                    def Encrypt(Data):
+                            EncodedData=str(Data).encode()
+                            EncryptedData=Key.encrypt(EncodedData)
+                            return EncryptedData
+                    def Decrypt(Data): 
+                        Data=bytes(str(Data),'utf-8')
+                        DecryptedData=Key.decrypt(Data)
+                        return DecryptedData
+
                     print("Both Correct")
                   
                     sm.current="PasswordMenu"
@@ -203,15 +173,57 @@ class Login(Screen):#Create different windows class
                             print("incorrect Username or Password")
                 
             
-
+                
         EnterUsernameandPassword.bind(on_press=GeneratePasswords)
         self.add_widget(EnterUsernameandPassword)
 
-        LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
-        self.add_widget(LoginTitle)
-        
+def PasswordViewButtonClick(self,):
+    sm.current="PasswordView"
+    PasswordViewScreen=sm.get_screen(sm.current)
 
-        
+    PasswordName=self.text
+    EncodedPasswordName=PasswordName.encode()
+    EncryptedPasswordName=Key.encrypt(EncodedPasswordName)
+    cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(EncryptedPasswordName,))
+    DisplayPassword=cursor.fetchone()
+    print(DisplayPassword)
+    PasswordTitle=DisplayPassword[0]
+    Username=DisplayPassword[1]
+    Decrypt(Data=Username)
+    DecryptedPassword
+    Decrypt(Data=PasswordTitle)
+ 
+    EncryptedUsername=DisplayPassword[1]
+    DecryptedUsername=Key.decrypt(EncryptedUsername)   
+    Username=DecryptedPasswordTitle.decode()  
+
+    EncryptedPassword=DisplayPassword[2]
+    DecryptedPassword=Key.decrypt(EncryptedPassword)     
+    Password=DecryptedPassword.decode()
+
+    PasswordViewScreen.clear_widgets()
+
+    ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(D),color=Black)
+
+    Username=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(Username),color=Black)
+
+    ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(Password),color=Black)                            
+                         
+    PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
+    PasswordViewScreen.add_widget(PasswordViewTitle)
+
+    def BackClick(self):
+        sm.current="PasswordMenu"
+
+    PasswordViewBackButton=Button(text="Back" ,size_hint=(0.25,0.1),pos_hint={"x":0.0,"y":0.9},color=Black) 
+    PasswordViewBackButton.bind(on_release=BackClick)
+    PasswordViewScreen.add_widget(PasswordViewBackButton)
+                       
+                        
+    PasswordViewScreen.add_widget(ViewPasswordTitle)
+    PasswordViewScreen.add_widget(Username)
+    PasswordViewScreen.add_widget(ViewPassword)
+     
 
 
 class PasswordCreation(Screen):
