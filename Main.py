@@ -17,7 +17,7 @@ from kivy.core.window import Window
 green = [0, 1, 0, 1] #RGBA values /255
 Grey=[0.8,0.8,0.8,1]
 Black=[0,0,0,1]
-
+KeyStore=[]
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
@@ -60,9 +60,6 @@ class Login(Screen):#Create different windows class
 
         CreateNewUser=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.4},text="Create New User",background_color=green)
 
-        EnterUsernameandPassword.bind(on_press=GeneratePasswords)
-        self.add_widget(EnterUsernameandPassword)
-
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         self.add_widget(LoginTitle)
         
@@ -97,7 +94,7 @@ class Login(Screen):#Create different windows class
         CreateNewUser.bind(on_press=CreateNewUserClick)
         self.add_widget(CreateNewUser)
 
-        def GeneratePasswords(self):
+        def GeneratePasswordsLogin(self):
             cursor.execute("SELECT * From UsersAndPasswords")
             Table=cursor.fetchall()
             UserName=Username.text
@@ -119,10 +116,11 @@ class Login(Screen):#Create different windows class
                     #Create encryption Key
                     UsernameAndPassword=(UserName+PassWord)                 
                     Key=GenerateKey(UsernameAndPassword=UsernameAndPassword)
+                    KeyStore.append(Key)
                     def Encrypt(Data):
-                            EncodedData=str(Data).encode()
-                            EncryptedData=Key.encrypt(EncodedData)
-                            return EncryptedData
+                        EncodedData=str(Data).encode()
+                        EncryptedData=Key.encrypt(EncodedData)
+                        return EncryptedData
                     def Decrypt(Data): 
                         Data=bytes(str(Data),'utf-8')
                         DecryptedData=Key.decrypt(Data)
@@ -173,9 +171,23 @@ class Login(Screen):#Create different windows class
                             print("incorrect Username or Password")
                 
             
-                
-        EnterUsernameandPassword.bind(on_press=GeneratePasswords)
+        
+        EnterUsernameandPassword.bind(on_press=GeneratePasswordsLogin)
         self.add_widget(EnterUsernameandPassword)
+      
+        EnterUsernameandPassword.bind(on_press=GeneratePasswordsLogin)
+        self.add_widget(EnterUsernameandPassword)
+
+Key=KeyStore
+
+def Encrypt(Data):
+    EncodedData=str(Data).encode()
+    EncryptedData=Key.encrypt(EncodedData)
+    return EncryptedData
+def Decrypt(Data): 
+    Data=bytes(str(Data),'utf-8')
+    DecryptedData=Key.decrypt(Data)
+    return DecryptedData
 
 def PasswordViewButtonClick(self,):
     sm.current="PasswordView"
