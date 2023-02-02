@@ -21,10 +21,11 @@ KeyStore=[]
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
-salt=os.urandom(15)
+salt=bytes(0)
 KeyDerivationFunction=Scrypt(salt=salt,length=32,n=2**20,r=10,p=3)
 def GenerateKey(UsernameAndPassword):
-    Key=KeyDerivationFunction.derive(bytes(UsernameAndPassword))
+    UsernameAndPassword=str(UsernameAndPassword).encode()
+    Key=KeyDerivationFunction.derive(UsernameAndPassword)
     return Key
 sm=ScreenManager(transition=NoTransition())
 def Encrypt(Data):
@@ -112,18 +113,19 @@ class Login(Screen):#Create different windows class
                 print(row[1])
                 print(UserName)
                 print(PassWord)
+                print("for every row")
                 if row[0]==HashedUsername.hexdigest() and row[1]== HashedPassword.hexdigest():
                     #Create encryption Key
+                    print("comparison")
+
                     UsernameAndPassword=(UserName+PassWord)                 
                     Key=GenerateKey(UsernameAndPassword=UsernameAndPassword)
-                    KeyStore.append(Key)
-                    def Encrypt(Data):
-                        EncodedData=str(Data).encode()
-                        EncryptedData=Key.encrypt(EncodedData)
-                        return EncryptedData
+                    KeyStore.append(UsernameAndPassword)
+                    print("Generated Key")
+                  
                     def Decrypt(Data): 
-                        Data=bytes(str(Data),'utf-8')
                         DecryptedData=Key.decrypt(Data)
+                        DecryptedData=DecryptedData.decode()
                         return DecryptedData
 
                     print("Both Correct")
@@ -131,95 +133,95 @@ class Login(Screen):#Create different windows class
                     sm.current="PasswordMenu"
                     UserTracker=open("UserLoggedin","w")
                     UserTracker.write(HashedUsername.hexdigest())
-    
+                    print("wrote hashed username")
                     UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
                     User=UserTracker.read()
                     print(User)
                     cursor.execute("SELECT * from UserPasswords WHERE User = (?)",(User,))
                     Table=cursor.fetchone()
-                    print(Table)
+                    print("Table:"+str(Table))
                     PasswordPos_hintX=0.0
                     PasswordPos_hintY=0.0
-                    for row in Table:
-                       
-                    
-                        
-                        PasswordMenuScreen=sm.get_screen("PasswordMenu")
-                        sm.current="PasswordMenu"
-
-                        IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(Decrypt(Data=row[0])),background_color=green,color=Black,)
-                        IndividualPassword.bind(on_press=PasswordViewButtonClick)
-
-                        PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
-                        PasswordPos_hintX+=0.2
-                        PasswordNumberTracker.append("1")
-                        PasswordNumber=len(PasswordNumberTracker)
-                        print(len(PasswordNumberTracker))
-                        PasswordNumber_DividedBy5=PasswordNumber/5
-                        if PasswordNumber_DividedBy5.is_integer():#is integer checks whether something is integer
-                            PasswordPos_hintX=0
-                            PasswordPos_hintY+=0.1
+                    if Table !=None:
+                        for row in Table:
+                            sm.current="PasswordMenu"
                             
-                       
-           
-                        if row[0]== HashedUsername.hexdigest() and row[1]!= HashedPassword.hexdigest():
-                            Password.text==""
-                            print("incorrect Username or Password")
-
-                        if row[0]!=HashedUsername and row[1]== HashedPassword:
-                            Username.text==""
-                            print("incorrect Username or Password")
+                            print("placing buttons")
+                            PasswordMenuScreen=sm.get_screen("PasswordMenu")
+                            print("Place button start")
+                            IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=(Decrypt(Data=row[0])),background_color=green,color=Black,)
+                            IndividualPassword.bind(on_press=PasswordViewButtonClick)
                 
-            
+                            PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
+                            PasswordPos_hintX+=0.2
+                            PasswordNumberTracker.append("1")
+                            PasswordNumber=len(PasswordNumberTracker)
+                            print(len(PasswordNumberTracker))
+                            PasswordNumber_DividedBy5=PasswordNumber/5
+                            print("successly placed buttons")
+                            if PasswordNumber_DividedBy5.is_integer():#is integer checks whether something is integer
+                                PasswordPos_hintX=0
+                                PasswordPos_hintY+=0.1
+                            
+
+           
+                            if row[0]== HashedUsername.hexdigest() and row[1]!= HashedPassword.hexdigest():
+                                Password.text==""
+                                print("incorrect Username or Password")
+
+                            if row[0]!=HashedUsername and row[1]== HashedPassword:
+                                Username.text==""
+                                print("incorrect Username or Password")
+                    
+                        DefineEncryptionAndDecryption(Key=Key)                    
+                    
+                    else:   
+                        sm.current="PasswordMenu"
+                        DefineEncryptionAndDecryption(Key=Key)
         
         EnterUsernameandPassword.bind(on_press=GeneratePasswordsLogin)
         self.add_widget(EnterUsernameandPassword)
       
-        EnterUsernameandPassword.bind(on_press=GeneratePasswordsLogin)
-        self.add_widget(EnterUsernameandPassword)
+def DefineEncryptionAndDecryption(Key):   
+    def Encrypttest(Data):
+        EncodedData=str(Data).encode()
+        EncryptedData=Key.encrypt(EncodedData)
+        return EncryptedData
+    Encrypt=Encrypttest
+    
+    def Decrypttest(Data): 
+        DecryptedData=Key.decrypt(Data)
+        DecryptedData.decode()
+        return DecryptedData
+    Decrypt=Decrypttest
 
-Key=KeyStore
 
-def Encrypt(Data):
-    EncodedData=str(Data).encode()
-    EncryptedData=Key.encrypt(EncodedData)
-    return EncryptedData
-def Decrypt(Data): 
-    Data=bytes(str(Data),'utf-8')
-    DecryptedData=Key.decrypt(Data)
-    return DecryptedData
 
 def PasswordViewButtonClick(self,):
     sm.current="PasswordView"
     PasswordViewScreen=sm.get_screen(sm.current)
 
     PasswordName=self.text
-    EncodedPasswordName=PasswordName.encode()
-    EncryptedPasswordName=Key.encrypt(EncodedPasswordName)
-    cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(EncryptedPasswordName,))
+   
+    
+    cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(Encrypt(Data=PasswordName),))
     DisplayPassword=cursor.fetchone()
     print(DisplayPassword)
-    PasswordTitle=DisplayPassword[0]
-    Username=DisplayPassword[1]
-    Decrypt(Data=Username)
-    DecryptedPassword
-    Decrypt(Data=PasswordTitle)
- 
+    #decrypts data within label
+    EncryptedPasswordTitle=DisplayPassword[0]
+   
     EncryptedUsername=DisplayPassword[1]
-    DecryptedUsername=Key.decrypt(EncryptedUsername)   
-    Username=DecryptedPasswordTitle.decode()  
 
     EncryptedPassword=DisplayPassword[2]
-    DecryptedPassword=Key.decrypt(EncryptedPassword)     
-    Password=DecryptedPassword.decode()
+  
 
     PasswordViewScreen.clear_widgets()
 
-    ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(D),color=Black)
+    ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(Decrypt(Data=EncryptedPasswordTitle)),color=Black)
 
-    Username=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(Username),color=Black)
+    Username=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(Decrypt(Data=EncryptedUsername)),color=Black)
 
-    ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(Password),color=Black)                            
+    ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(Decrypt(Data=EncryptedPassword)),color=Black)                            
                          
     PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
     PasswordViewScreen.add_widget(PasswordViewTitle)
@@ -263,22 +265,20 @@ class PasswordCreation(Screen):
         self.add_widget(NewPasswordTitle)
         #buttons
         def AddPassword(self):
-            Password=Password.text
-            Encrypt(Data=Password)
+            Password=NewPassword.text
+            EncryptedPassword=Encrypt(Data=Password)
 
             Username=NewUsername.text
-            EncodedUsername=Username.encode()
-            EncryptedUsername=Key.encrypt(EncodedPassword)
+            EncryptedUsername=Encrypt(Data=Username)
 
             PasswordTitle=NewPasswordTitleInput.text
-            EncodedPasswordTitle=PasswordTitle.encode()
-            EncryptedPassworditle=Key.encrypt(EncodedPasswordTitle)
+            EncryptedPasswordTitle=Encrypt(PasswordTitle)
 
             UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
             User=UserTracker.read()
             UserTracker.close()
             
-            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(PasswordTitle,PasswordTitle,PasswordTitle,User))
+            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(EncryptedPasswordTitle,EncryptedPassword,EncryptedUsername,User))
             conn.commit()
          
             print(len(PasswordNumberTracker))
@@ -372,4 +372,5 @@ def main():
     UserTracker=open("UserLoggedin","w")
     UserTracker.write("")   
     UserTracker.close()
+  
 main()
