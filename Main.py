@@ -21,8 +21,8 @@ KeyStore=[]
 #Creating Sqlite Database
 conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
-salt=bytes(0)
-KeyDerivationFunction=Scrypt(salt=salt,length=32,n=2**20,r=10,p=3)
+salt=os.urandom(15)
+KeyDerivationFunction=Scrypt(salt=salt,length=32,n=2**20,r=10,p=1)
 def GenerateKey(UsernameAndPassword):
     UsernameAndPassword=str(UsernameAndPassword).encode()
     Key=KeyDerivationFunction.derive(UsernameAndPassword)
@@ -372,5 +372,5 @@ def main():
     UserTracker=open("UserLoggedin","w")
     UserTracker.write("")   
     UserTracker.close()
-  
+    cursor.execute("Drop Table UserPasswords")
 main()
