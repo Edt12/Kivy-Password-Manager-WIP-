@@ -1,5 +1,9 @@
 import sqlite3
-from kivy.uix.screenmanager import ScreenManager, Screen,NoTransition #Kivy has screens not pop up windows so screen manage manager has different screens think of like switching between virtual desktops
+import hashlib
+import os
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from kivy.uix.screenmanager import ScreenManager, Screen,NoTransition #Kivy has screens not pop up windows so screen manage manager different screens think of like switching between virtual desktops
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label#import widgets such as buttons and labels 
@@ -9,427 +13,364 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.lang import Builder
 from kivy.core.window import Window
-import os
-import base64
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from cryptography.fernet import Fernet
-import hashlib
 
-green = [0, 1, 0, 1] #RGBA values /255 
+green = [0, 1, 0, 1] #RGBA values /255
 Grey=[0.8,0.8,0.8,1]
 Black=[0,0,0,1]
 KeyStore=[]
-ProductNameStore=[]
 #Creating Sqlite Database
-conn=sqlite3.connect("DunderMifflinDatabase.db")#connects to database 
+conn=sqlite3.connect("UsersAndPasswords.db")#connects to database 
 cursor=conn.cursor()#adds connection to cursor
-Screenmanager=ScreenManager()#Each Screen is called by screen manager which is used for commands which involve changing between screens
-#generates encryption key using Scrypt
-def GenerateKey(UsernameAndPassword,salt):
-    KeyDerivationFunction=Scrypt(salt=salt,length=32,n=2,r=1,p=1)
-    UsernameAndPassword=str(UsernameAndPassword).encode()   
-    Key=base64.urlsafe_b64encode(KeyDerivationFunction.derive(UsernameAndPassword))
+salt=os.urandom(15)
+KeyDerivationFunction=Scrypt(salt=salt,length=32,n=2**20,r=10,p=1)
+def GenerateKey(UsernameAndPassword):
+    UsernameAndPassword=str(UsernameAndPassword).encode()
+    Key=KeyDerivationFunction.derive(UsernameAndPassword)
     return Key
-
+sm=ScreenManager(transition=NoTransition())
 def Encrypt(Data):
-     pass
-def Decrypt(Data):
-     pass
+    pass
+def Decrypt(Data): 
+    pass
+def PasswordViewButtonClick(self):
+    pass
 
 
-       
-        
-class Login(Screen):
-   
-    def __init__(self,**kwargs):
+            
+PasswordNumberTracker=[]
+WidgetTracker=[]
+Quantity=[]
+Widgets=[]
+
+class Login(Screen):#Create different windows class
+    
+    def __init__(self,**kwargs):#Instead of using build to intialise use init as build does not work with screen class
         Screen.__init__(self,**kwargs)
     
         Window.clearcolor =(Grey)#sets background color for window to get value take each rgb value and divide by 255
 
-        self.layout=FloatLayout()
+        self.layout=FloatLayout()#float layout allows you to place widgets anywhere
 
-        UsernameEntry=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.5})
-        self.add_widget(UsernameEntry)
+        Username=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.5})#creates Input box called username,on size_hint first value is length second is width
+        self.add_widget(Username)
 
-        PasswordEntry=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.4})
-        self.add_widget(PasswordEntry)
+        Password=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.4})#creates Input box called username,on size_hint first value is length second is width
+        self.add_widget(Password)
 
         EnterUsernameandPassword=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.5},text="Enter",background_color=green)
 
+        CreateNewUser=Button(size_hint=(0.1,0.05),pos_hint={'x':0.7,'y':0.4},text="Create New User",background_color=green)
 
-        def LoginClick(self):
-           
-            
-            ProductPos_hintX=0.0
-            ProductPos_hintY=0.0
-            ProductNumber=0
-            #hashes Username
-            Username=UsernameEntry.text
-            EncodedUsername=Username.encode()
-            HashedUsername=hashlib.sha3_512(EncodedUsername)
-            #hashes password
-            Password=PasswordEntry.text
-            EncodedPassword=Password.encode()
-            HashedPassword=hashlib.sha3_512(EncodedPassword)
-            cursor.execute("SELECT * From UsersAndPasswords")
-            Table=cursor.fetchall()
-            if Table!=[]:
-                for row in Table:#goes through every row in UserAndPasswords Table
-                    #compare inputed hashed username and password when they are in hexdigest form as that is how they are stored in database
-                    print("compare")
-                
-                    if row[1]== HashedUsername.hexdigest() and row[2]== HashedPassword.hexdigest():#rows in sqlite can be referenced through a list e.g row 0 is first column ,row 1 is second column
-                        print("Both Correct")#Username.text and Password.text are text from login input boxes
-                        #generate cipher for encryption
-                        HexedHashedUsername=HashedUsername.hexdigest()
-                        cursor.execute("Select Salt from UsersAndPasswords where Username=(?)",(HexedHashedUsername,))
-                        Salt=cursor.fetchone()
-                        UsernameAndPassword=HashedPassword.hexdigest()+HashedUsername.hexdigest()
-                        Key=GenerateKey(UsernameAndPassword,salt=Salt[0])
-                        cipher=Fernet(Key)
-                        KeyStore.append(Key)
-                        print(Key)
-                        print(KeyStore)
-                        print(KeyStore[0])
-                        #defines encrypt and decrypt functions
-                        def Decrypt(Data):
-                            DecryptedData=cipher.decrypt(Data)
-                            return DecryptedData
-                        
-                        def Encrypt(Data):
-                            Data=str(Data)
-                            DataBytes=bytes(Data, 'utf-8')
-                            EncryptedData=cipher.encrypt(DataBytes)
-                            return EncryptedData
-                        print(Encrypt("steve"))
-                        cursor.execute("SELECT * from Products")
-                        Table=cursor.fetchall()
-                        print(Table)
-                        for row in Table: 
-                            Screenmanager.current="Shopfront"
-                            ShopfrontScreen=Screenmanager.get_screen("Shopfront")#get screen grabs an instance of a screen and is used to place widgets on different screens
-
-                            ProductName=row[0]
-                            ProductPrice=row[1]
-                            cursor.execute("SELECT * from Products")
-                        
-                        
-
-                            def ProductPress(self):
-                                Quantity=0
-                                ProductPressed=self.text
-                                Quantity+=1
-
-                                
-                                cursor.execute("SELECT *FROM Basket Where Productname = (?)",(ProductPressed,))#First Searches for item in basket
-                                Product=self.text#getting title then using it to search the database for its price then adding price to basket
-                                cursor.execute("SELECT *FROM Products Where Productname = (?)",(Product,))
-                               
-                                EncryptedProduct=Encrypt(Product)
-                                cursor.execute("Select Productname from Basket")
-                                Basket=cursor.fetchall()
-                                print(Basket)
-                                def DecryptBasket(self):
-                                    for row in Basket:
-                                        print("Decrypting Basket")
-                                        DecryptedProductName=Decrypt(row[0])
-                                        ProductNameStore.append(DecryptedProductName)
-                                        print(ProductNameStore)
-                                        return ProductNameStore
-                                def CompareBasketToProductPressed(self):
-                                    print("Comparing Basket")
-                                    print(ProductNameStore)
-                                    Index=-1
-                                    for i in ProductNameStore:
-                                        Index+=1
-                                        print(Index)
-                                        ItemAlreadyInBasket=False    
-                                        print("searching")
-                                        if ProductNameStore[Index]==bytes(ProductPressed,'utf-8'):
-                                            print("great Success")
-                                            cursor.execute("Select Quantity from Basket where Productname=(?)",(EncryptedProduct,))
-                                            TempQuantity=cursor.fetchone()
-                                            Quantity=Decrypt(TempQuantity)
-                                            Quantity+=1
-                                            EncryptedQuantity2=Encrypt(Quantity)
-                                            cursor.execute("Update Basket Set Quantity=? Where Productname=?",(EncryptedQuantity2,EncryptedProduct))
-                                            conn.commit()
-                                            ItemAlreadyInBasket=True
-                                            return ItemAlreadyInBasket
-                                        else:
-                                            print("HE CANNOT AFFORD")
-                                            return ItemAlreadyInBasket
-
-
-                                DecryptBasket(self)
-                                ItemAlreadyInBasket=CompareBasketToProductPressed(self)
-                                Basket="stewetww"
-                                
-                                   
-
-                    
-                                if ItemAlreadyInBasket==False:
-                                    print("adding to basket new ")
-                                    EncryptedProductPrice=Encrypt(ProductPrice)
-                                    EncryptedQuantity=Encrypt(Quantity)
-                                    cursor.execute("INSERT INTO Basket(Productname,ProductPrice,Quantity)VALUES(?,?,?)",(EncryptedProduct,EncryptedProductPrice,EncryptedQuantity))
-                                    conn.commit()
-
- 
-                        IndividualProduct=Button(size_hint=(0.2,0.1),pos_hint={'x':ProductPos_hintX,'y':ProductPos_hintY},text=str(ProductName),background_color=green,color=Black)
-                        IndividualProduct.bind(on_press=ProductPress)
-                        ShopfrontScreen.add_widget(IndividualProduct)
-                        ProductPos_hintX+=0.2
-                        ProductNumber+=1
-
-                        ProductNumber_DividedBy5=ProductNumber/5
-                        if ProductNumber_DividedBy5.is_integer():#is integer checks whether something is integer
-                            ProductPos_hintX=0
-                            ProductPos_hintY+=0.1
-                    
-            if row[0]== UsernameEntry.text and row[1]!= PasswordEntry.text:
-                        print("incorrect")
-                        
-            if row[0]!= UsernameEntry.text and row[1]== PasswordEntry.text:
-                        print("incorrect")
-
-            if row[0]!= UsernameEntry.text and row[1]== PasswordEntry.text:
-                        print("incorrect")
-                   
-        EnterUsernameandPassword.bind(on_press=LoginClick)
-        self.add_widget(EnterUsernameandPassword)
-
-        AddNewCustomer=Button(size_hint=(0.2,0.05),pos_hint={'x':0.7,'y':0.4},text=str("Add New Customer"),background_color=green)
-        def AddCustomer(self):
-            CustomerUsername=UsernameEntry.text
-            CustomerPassword=PasswordEntry.text
-            EncodedUsername=CustomerUsername.encode()#To hash first encode then hash
-            HashedUsername=hashlib.sha3_512(EncodedUsername)
-            EncodedPassword=CustomerPassword.encode()
-            HashedPassword=hashlib.sha3_512(EncodedPassword)
-            UserType="Customer"#all accounts made this way will be customer level access as higher levels only made by managers
-            cursor.execute("Select Username from UsersAndPasswords")
-            Usernames=cursor.fetchall()
-            print(Usernames)
-            def check():
-                UsernameAlreadyUsed=False
-                if Usernames!=[]:
-                    for row in Usernames:
-                        print("rowing")
-                        if HashedUsername.hexdigest()==row[0]:
-                            print("Checking")
-                            UsernameAlreadyUse=True
-                            return UsernameAlreadyUse
-                        else:
-                             return UsernameAlreadyUse
-                else: 
-                    return UsernameAlreadyUsed       
-                        
-            UsernameAlreadyUse=check()#function so commands below arent executed in a loop
-            print(UsernameAlreadyUse)
-            #Insert hashes into database as hex digest as by defualt their datatype is not supported
-            if UsernameAlreadyUse==False:
-                salt=os.urandom(32)
-                cursor.execute("Insert into UsersAndPasswords (Username,Password,UserType,Salt)VALUES(?,?,?,?)",(HashedUsername.hexdigest(),HashedPassword.hexdigest(),UserType,salt))
-                conn.commit()
-                print("Adding")
-            if UsernameAlreadyUse==True:
-                UsernameEntry.text="Username Already Used"
-                print("Not Adding")
-            
-            UsernameEntry.text=""
-            PasswordEntry.text=""
-        AddNewCustomer.bind(on_press=AddCustomer)
-        self.add_widget(AddNewCustomer)
         LoginTitle=Label(text="Please Enter Your Username and Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.6},color=Black)
         self.add_widget(LoginTitle)
-
-
-def Decrypt(Data):
-    print(Data)
-    Key=KeyStore[0]
-    cipher=Fernet(Key)
-    DecryptedData=cipher.decrypt(Data)
-    return DecryptedData.decode('utf-8')
-                        
-def Encrypt(Data):
-    print(Data)
-    Key=KeyStore[0]
-    cipher=Fernet(Key)
-    Data=str(Data)
-    DataBytes=bytes(Data,'utf-8')
-    EncryptedData=cipher.encrypt(DataBytes)
-    return EncryptedData
-
-#inputs-Payment Information
-#outputs-Order(deliveryaddress and Order)
-class PaymentScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.layout=FloatLayout()#Float Layout is a layout in which widgets by defualt are not postioned
-
-        PaymentScreenTitle=Label(text="Payment Screen",size_hint=(0.2,0.1),pos_hint={'x':0.4,'y':0.9},color=Black)#Size_hint is size relative to screen size pos_hint is position relative to screen size e.g 0.1=one tenth
-        self.add_widget(PaymentScreenTitle)
-
-        Back=Button(size_hint=(0.2,0.1),pos_hint={'x':0.0,'y':0.9},text="Back",background_color=green,color=Black)#color is writing color background color is background
-        def BackClick(self):
-            Screenmanager.current="Shopfront"
-        Back.bind(on_press=BackClick)#binds a function to happen when a button is pressed
-        self.add_widget(Back)
-
-        CardNumber=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.8},text="Card Number")
-        self.add_widget(CardNumber)
         
-        ExpirationDate=TextInput(size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.7},text="Expiration Date")
-        self.add_widget(ExpirationDate)
+        def CreateNewUserClick(self):
+            cursor.execute("SELECT * From UsersAndPasswords")
+            UsersAndPasswords=cursor.fetchall()
 
-        SecurityCode=TextInput(size_hint=(0.1,0.05),pos_hint={'x':0.4,'y':0.7},text="Security Code")
-        self.add_widget(SecurityCode)
+            UserName=Username.text#takes text from input boxes
+            PassWord=Password.text
 
-        BillingAddress=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.6},text="Billing Address")
-        self.add_widget(BillingAddress)
+            EncodedUsername=UserName.encode()#before hashed strings have to be encoded
+            EncodedPassword=PassWord.encode()
 
-        BillingAddressLine2=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.5},text="Billing Address Line 2")
-        self.add_widget(BillingAddressLine2)
+            HashedUsername=hashlib.sha3_512(EncodedUsername)
+            print(str(HashedUsername))
 
-        Country=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.4},text="Country")
-        self.add_widget(Country)
+            HashedPassword=hashlib.sha3_512(EncodedPassword)#hashes password with SHa3_512
+            print(UsersAndPasswords)
 
-        Postcode=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.3},text="Postcode")
-        self.add_widget(Postcode)
+            if UsersAndPasswords==[]:#uses hex digest so it can be supported by sqlite3 and able to be inserted
+                cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(HashedUsername.hexdigest(),HashedPassword.hexdigest()))
+                conn.commit()
+                print("New User Added 1")
 
-        EmailAddress=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.2},text="Email Address")
-        self.add_widget(EmailAddress)
-
-
-        DeliveryAddress=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.1},text="Delivery Address")
-        self.add_widget(DeliveryAddress)
-
-
-        DeliveryPostcode=TextInput(size_hint=(0.2,0.05),pos_hint={'x':0.4,'y':0.0},text="Delivery Postcode")
-        self.add_widget(DeliveryPostcode)
-
-        RememberButton=Button(size_hint=(0.3,0.05),pos_hint={'x':0.7,'y':0.7},text="Remember my Payment information",background_color=green,color=Black)
-        #in future a function which reads all the numbers into a database will be added
-        self.add_widget(RememberButton)
-
-        PayButton=Button(size_hint=(0.3,0.05),pos_hint={'x':0.7,'y':0.8},text="Pay",background_color=green,color=Black)
-        def PayButtonClick(self):
-            CardNumber.text=""
-            SecurityCode.text=""
-            ExpirationDate.text=""
-            BillingAddress.text=""
-            BillingAddressLine2.text=""
-            Country.text=""
-            Postcode.text=""
-            EmailAddress.text=""
-            DeliveryAddress.text=""
-            DeliveryPostcode.text=""
-        PayButton.bind(on_press=PayButtonClick)   
-        self.add_widget(PayButton)
-        #help button will be added later
-
-
-class ViewBasket(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.layout=FloatLayout()
-        ViewBasketTitle=Label(text="Basket View Screen",size_hint=(0.2,0.1),pos_hint={'x':0.4,'y':0.9},color=Black)
-        self.add_widget(ViewBasketTitle)
-
-        CheckoutAndPay=Button(size_hint=(0.2,0.1),pos_hint={'x':0.8,'y':0.9},text=str("Checkout and Pay"),background_color=green,color=Black)
-        def CheckoutAndPayClick(self):
-            Screenmanager.current="PaymentScreen"
-        
-        CheckoutAndPay.bind(on_press=CheckoutAndPayClick)        
-        self.add_widget(CheckoutAndPay)
-        
-        Back=Button(size_hint=(0.2,0.1),pos_hint={'x':0.0,'y':0.9},text="Back",background_color=green,color=Black)
-        def BackClick(self):
-            ViewBasketScreen=Screenmanager.get_screen(Screenmanager.current)
-            Screenmanager.current="Shopfront"
-            ViewBasketScreen.clear_widgets()
-        Back.bind(on_press=BackClick)
-        self.add_widget(Back)
-        #help button will be added later
-class Shopfront(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.layout=FloatLayout()
-        
-        ShopfrontTitle=Label(text="Shopfront",size_hint=(0.2,0.1),pos_hint={'x':0.4,'y':0.9},color=Black)
-        self.add_widget(ShopfrontTitle)
-
-        def ViewBasketClick(self):
-            test=Encrypt("Steve")                     
-            print(test)
-            print("decrypttesst")
-            print(Decrypt(test))
-            Screenmanager.current="ViewBasket"
-            ViewBasketScreen=Screenmanager.get_screen("ViewBasket")
-            #In future need to add some way of getting the quantity of a specific item and removing the previous label if more items are added to basket after someone has already pressed viewbasket
-            cursor.execute("Select * From Basket")
-            Basket=cursor.fetchall()
-            for row in Basket:
-                print(type(row))
-                DecryptedProduct=Decrypt(row[0])
-                DecryptedProductPrice=Decrypt(row[1])
-                DecryptedQuantity=Decrypt(row[2])
-                Product=Label(text=DecryptedProduct+" "+DecryptedProductPrice+" "+DecryptedQuantity,size_hint=(0.2,0.1),pos_hint={'x':0.5,'y':0.5},color=Black)
-                ViewBasketScreen.add_widget(Product) 
+            for row in UsersAndPasswords:
+                if row[0]!=HashedUsername.hexdigest():
+                    cursor.execute("Insert into UsersAndPasswords (Username,Password) VALUES(?,?)",(HashedUsername.hexdigest(),HashedPassword.hexdigest()))
+                    conn.commit()
+                    print("New User Added")
             
-        
-        Viewbasket=Button(size_hint=(0.2,0.1),pos_hint={'x':0.8,'y':0.9},text="ViewBasket",background_color=green,color=Black)
-        Viewbasket.bind(on_press=ViewBasketClick)
-        self.add_widget(Viewbasket)
 
-            #help button will be added later
+        CreateNewUser.bind(on_press=CreateNewUserClick)
+        self.add_widget(CreateNewUser)
+
+        def GeneratePasswordsLogin(self):
+            cursor.execute("SELECT * From UsersAndPasswords")
+            Table=cursor.fetchall()
+            UserName=Username.text
+            PassWord=Password.text
+            EncodedUsername=UserName.encode()#before hashed strings have to be encoded
+            EncodedPassword=PassWord.encode()
+            HashedUsername=hashlib.sha3_512(EncodedUsername)
+            print(str(HashedUsername))
+            HashedPassword=hashlib.sha3_512(EncodedPassword)#hashes passwod with SHa3_512
+
+            
+            for row in Table:#goes through every row in UsersAndPasswords
+                
+                print(row[0])
+                print(row[1])
+                print(UserName)
+                print(PassWord)
+                print("for every row")
+                if row[0]==HashedUsername.hexdigest() and row[1]== HashedPassword.hexdigest():
+                    #Create encryption Key
+                    print("comparison")
+
+                    UsernameAndPassword=(UserName+PassWord)                 
+                    Key=GenerateKey(UsernameAndPassword=UsernameAndPassword)
+                    KeyStore.append(UsernameAndPassword)
+                    print("Generated Key")
+                  
+                    def Decrypt(Data): 
+                        DecryptedData=Key.decrypt(Data)
+                        DecryptedData=DecryptedData.decode()
+                        return DecryptedData
+
+                    print("Both Correct")
+                  
+                    sm.current="PasswordMenu"
+                    UserTracker=open("UserLoggedin","w")
+                    UserTracker.write(HashedUsername.hexdigest())
+                    print("wrote hashed username")
+                    UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
+                    User=UserTracker.read()
+                    print(User)
+                    cursor.execute("SELECT * from UserPasswords WHERE User = (?)",(User,))
+                    Table=cursor.fetchone()
+                    print("Table:"+str(Table))
+                    PasswordPos_hintX=0.0
+                    PasswordPos_hintY=0.0
+                    if Table !=None:
+                        for row in Table:
+                            sm.current="PasswordMenu"
+                            
+                            print("placing buttons")
+                            PasswordMenuScreen=sm.get_screen("PasswordMenu")
+                            print("Place button start")
+                            IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=(Decrypt(Data=row[0])),background_color=green,color=Black,)
+                            IndividualPassword.bind(on_press=PasswordViewButtonClick)
+                
+                            PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
+                            PasswordPos_hintX+=0.2
+                            PasswordNumberTracker.append("1")
+                            PasswordNumber=len(PasswordNumberTracker)
+                            print(len(PasswordNumberTracker))
+                            PasswordNumber_DividedBy5=PasswordNumber/5
+                            print("successly placed buttons")
+                            if PasswordNumber_DividedBy5.is_integer():#is integer checks whether something is integer
+                                PasswordPos_hintX=0
+                                PasswordPos_hintY+=0.1
+                            
+
+           
+                            if row[0]== HashedUsername.hexdigest() and row[1]!= HashedPassword.hexdigest():
+                                Password.text==""
+                                print("incorrect Username or Password")
+
+                            if row[0]!=HashedUsername and row[1]== HashedPassword:
+                                Username.text==""
+                                print("incorrect Username or Password")
+                    
+                        DefineEncryptionAndDecryption(Key=Key)                    
+                    
+                    else:   
+                        sm.current="PasswordMenu"
+                        DefineEncryptionAndDecryption(Key=Key)
+        
+        EnterUsernameandPassword.bind(on_press=GeneratePasswordsLogin)
+        self.add_widget(EnterUsernameandPassword)
+      
+def DefineEncryptionAndDecryption(Key):   
+    def Encrypttest(Data):
+        EncodedData=str(Data).encode()
+        EncryptedData=Key.encrypt(EncodedData)
+        return EncryptedData
+    Encrypt=Encrypttest
+    
+    def Decrypttest(Data): 
+        DecryptedData=Key.decrypt(Data)
+        DecryptedData.decode()
+        return DecryptedData
+    Decrypt=Decrypttest
+
+
+
+def PasswordViewButtonClick(self,):
+    sm.current="PasswordView"
+    PasswordViewScreen=sm.get_screen(sm.current)
+
+    PasswordName=self.text
+   
+    
+    cursor.execute("SELECT * from UserPasswords WHERE PasswordTitle = (?)",(Encrypt(Data=PasswordName),))
+    DisplayPassword=cursor.fetchone()
+    print(DisplayPassword)
+    #decrypts data within label
+    EncryptedPasswordTitle=DisplayPassword[0]
+   
+    EncryptedUsername=DisplayPassword[1]
+
+    EncryptedPassword=DisplayPassword[2]
+  
+
+    PasswordViewScreen.clear_widgets()
+
+    ViewPasswordTitle=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.7},text=str(Decrypt(Data=EncryptedPasswordTitle)),color=Black)
+
+    Username=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.6},text=str(Decrypt(Data=EncryptedUsername)),color=Black)
+
+    ViewPassword=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.5},text=str(Decrypt(Data=EncryptedPassword)),color=Black)                            
+                         
+    PasswordViewTitle=Label(text="Password Viewing Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
+    PasswordViewScreen.add_widget(PasswordViewTitle)
+
+    def BackClick(self):
+        sm.current="PasswordMenu"
+
+    PasswordViewBackButton=Button(text="Back" ,size_hint=(0.25,0.1),pos_hint={"x":0.0,"y":0.9},color=Black) 
+    PasswordViewBackButton.bind(on_release=BackClick)
+    PasswordViewScreen.add_widget(PasswordViewBackButton)
+                       
+                        
+    PasswordViewScreen.add_widget(ViewPasswordTitle)
+    PasswordViewScreen.add_widget(Username)
+    PasswordViewScreen.add_widget(ViewPassword)
+     
+
+
+class PasswordCreation(Screen):
+    def __init__(self, **kwargs):
+        Screen.__init__(self,**kwargs)
+        self.layout=FloatLayout()
+        #input boxes
+        NewPasswordTitleInput=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.6})
+        self.add_widget(NewPasswordTitleInput)
+        NewUsername=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.4})
+        self.add_widget(NewUsername)
+        NewPassword=TextInput(size_hint=(0.3,0.1),pos_hint={'x':0.4,'y': 0.2})
+        self.add_widget(NewPassword)
+        #labels
+        PasswordCreationTitle=Label(text="Password Creation Screen",size_hint=(0.1,0.05),pos_hint={'x':0.49,'y':0.9},color=Black)
+        self.add_widget(PasswordCreationTitle)
+        
+        NewPasswordTitleLabel=Label(text="Please enter your Password Title",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.7},color=Black)
+        self.add_widget(NewPasswordTitleLabel)
+
+        NewUsernameTitle=Label(text="Please Enter Your New Username",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.5},color=Black)
+        self.add_widget(NewUsernameTitle)
+        
+        NewPasswordTitle=Label(text="Please Enter Your New Password",size_hint=(0.1,0.05),pos_hint={'x':0.5,'y':0.3},color=Black)
+        self.add_widget(NewPasswordTitle)
+        #buttons
+        def AddPassword(self):
+            Password=NewPassword.text
+            EncryptedPassword=Encrypt(Data=Password)
+
+            Username=NewUsername.text
+            EncryptedUsername=Encrypt(Data=Username)
+
+            PasswordTitle=NewPasswordTitleInput.text
+            EncryptedPasswordTitle=Encrypt(PasswordTitle)
+
+            UserTracker=open("UserLoggedin","r")#reads from Text file which has been written to to find who is logged in
+            User=UserTracker.read()
+            UserTracker.close()
+            
+            cursor.execute("INSERT INTO UserPasswords (PasswordTitle,Username,Password,User) VALUES(?,?,?,?)",(EncryptedPasswordTitle,EncryptedPassword,EncryptedUsername,User))
+            conn.commit()
+         
+            print(len(PasswordNumberTracker))
+            
+    
+            PasswordNumber=len(PasswordNumberTracker)
+            
+       
+
+            PasswordNumberDividedBy5=PasswordNumber/5
+            XandYSplit=str(PasswordNumberDividedBy5).split(".")
+          
+            PasswordX=int(XandYSplit[1])
+            PasswordY=int(XandYSplit[0])
+            
+            PasswordPos_hintX=PasswordX/10
+           
+            PasswordPos_hintY=PasswordY/10
+                    
+            IndividualPassword=Button(size_hint=(0.2,0.1),pos_hint={'x':PasswordPos_hintX,'y':PasswordPos_hintY},text=str(PasswordTitle),background_color=green,color=Black,)
+            IndividualPassword.bind(on_press=PasswordViewButtonClick)
+            
+            PasswordMenuScreen=sm.get_screen("PasswordMenu")
+            PasswordMenuScreen.add_widget(IndividualPassword)#Adds Individual Password to Password Menu
+            #add 1 to password number 
+            PasswordNumberTracker.append("1")
+            #deletes text in input boxes after new password is made
+            NewPassword.text=""
+            NewUsername.text=""
+            NewPasswordTitleInput.text=""
+          
+
+        AddUsernameAndPassword=Button(size_hint=(0.25,0.1),pos_hint={'x':0.7,'y':0.6},text="Add username and password",background_color=green,color=Black)
+        AddUsernameAndPassword.bind(on_press=AddPassword)
+        self.add_widget(AddUsernameAndPassword)
+
+        def BackButtonClick(self):
+            sm.current="PasswordMenu"
+            
+        Backbutton=Button(size_hint=(0.25,0.1),pos_hint={'x':0.0,'y':0.9},text="back",background_color=green,color=Black)
+        Backbutton.bind(on_press=BackButtonClick)
+        self.add_widget(Backbutton)
+
+class PasswordView(Screen):
+    def __init__(self, **kwargs):
+        Screen.__init__(self,**kwargs)
+        self.layout=FloatLayout
+        
+        
+        
+
+class PasswordMenu(Screen):
+      def __init__(self,**kwargs):#Instead of using build to intialise use init 
+        Screen.__init__(self,**kwargs) 
+        self.layout=FloatLayout
+
+        Title=Label(size_hint=(0.3,0.1),pos_hint={'x':0.35,'y':0.9},text="Password Screen",color=Black)
+        self.add_widget(Title)
+
+        def CreatePasswordClick(self):
+           sm.current="PasswordCreation" #Changes current screen to Password Creation Screen
+
+        CreatePassword=Button(size_hint=(0.15,0.1),pos_hint={'x':0.0,'y':0.9},text="Create Password",background_color=green,color=Black)
+        CreatePassword.bind(on_press=CreatePasswordClick)
+        self.add_widget(CreatePassword)
 
 def main():
-  
-    #payment information table will be added in future
-    cursor.execute("""create table IF NOT EXISTS Products(
-    Productname text Primary Key
-    ,ProductPrice text(6)
-    )""")
-
-
-    cursor.execute("""create table IF NOT EXISTS Basket(
-    Productname blob(128)
-    ,ProductPrice blob(128)
-    ,Quantity blob (128)
-    )""")
-
     #creates SQlite Database
-    cursor.execute("""create table IF NOT EXISTS UsersAndPasswords
-    (UserID integer Primary Key Autoincrement
-    ,Username blob (512) 
-    ,Password blob (512)
-    ,Salt int(32)
-    ,Usertype text
+    cursor.execute("""create table IF NOT EXISTS UsersAndPasswords 
+    (Username blob
+    ,Password blob
     )""")#inside are columns/categorys
+    cursor.execute("""create table IF NOT EXISTS UserPasswords
+    (PasswordTitle blob,
+    Username blob
+    ,Password blob
+    ,User blob )""") #inside are columns/categorys  
 
-    cursor.execute("""create Table IF NOT EXISTS PaymentInfo(
-     CardNumber blob(128) Primary Key
-    ,SecurityCode blob(128)
-    ,ExpirationDate blob(128)
-    ,BillingAddress blob(128)
-    ,Postcode blob(128)
-    ,UserID integer
-    ,FOREIGN KEY(UserID) REFERENCES UsersAndPasswords(UserID))""")#() next to text is length of the inputs in bytes and for text data type it is number of characters
+    sm.add_widget(PasswordView(name="PasswordView"))
+    sm.add_widget(Login(name="Login"))
+    sm.add_widget(PasswordMenu(name="PasswordMenu"))
+    sm.add_widget(PasswordCreation(name="PasswordCreation"))
 
-    Screenmanager.add_widget(PaymentScreen(name="PaymentScreen"))#adds each screen to screenmanager to so they can be controlled
-    Screenmanager.add_widget(ViewBasket(name="ViewBasket"))
-    Screenmanager.add_widget(Shopfront(name="Shopfront"))
-    Screenmanager.add_widget(Login(name="Login"))
-    Screenmanager.current="Login"
-
-  
-    class PaperApp(App):#app class contains screenmanager  
+    class PasswordManager(App):
         def build(self):
-            return Screenmanager 
-    PaperApp().run()
-    cursor.execute("Drop Table Basket")
 
-    cursor.close()
+            sm.current="Login"
+            return sm
+    
+    PasswordManager().run()
+    UserTracker=open("UserLoggedin","w")
+    UserTracker.write("")   
+    UserTracker.close()
+    cursor.execute("Drop Table UserPasswords")
 main()
