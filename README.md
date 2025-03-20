@@ -13,8 +13,6 @@ Supports multiple users
 
 Can view existing passwords
 
-Features to be added
-
 Can Add new users
 
 Hash Passwords within SQlite database
